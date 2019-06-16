@@ -60,6 +60,7 @@
     <Compile Include="NegativeFilter.fs" />
     <Compile Include="SepiaFilter.fs" />
     <Compile Include="SobelFilter.fs" />
+    <Compile Include="ImageForm.fs" />
     <Compile Include="Program.fs" />
     <None Include="Resources\warsaw.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

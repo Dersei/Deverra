@@ -2,7 +2,7 @@
 
 open Brahma.OpenCL
 
-let sobelCommand stride = <@ fun (range:_2D) (buf:array<uint32>) (dst:array<uint32>) (check:int) ->
+let sobelCommand stride = <@ fun (range:_2D) (buf:array<uint32>) (dst:array<uint32>) ->
     let i = range.GlobalID0
     let j = range.GlobalID1
     let mutable h = float32 0.
@@ -17,6 +17,5 @@ let sobelCommand stride = <@ fun (range:_2D) (buf:array<uint32>) (dst:array<uint
         v <- abs (top - bottom)
     let result = byte((sqrt (h * h + v * v)))
     let mutable color = 0u
-    if(check=0) then color <- ((uint32(255) <<< 24) + (uint32(result) <<< 16) + (uint32(result) <<< 8) + uint32(result))
-    else color <- ((uint32(255) <<< 24) + (uint32(0) <<< 16) + (uint32(result) <<< 8) + uint32(0))
+    color <- ((uint32(255) <<< 24) + (uint32(result) <<< 16) + (uint32(result) <<< 8) + uint32(result))
     dst.[i + stride * j] <- color @>

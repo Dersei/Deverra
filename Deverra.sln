@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29006.145
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Deverra", "Deverra\Deverra.fsproj", "{D8A71DBA-5A17-41C4-8FD6-611ED707515A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deverra.GUI", "Deverra.GUI\Deverra.GUI.csproj", "{A13968FB-4827-4229-8FE3-1DA4CF9B2BC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D8A71DBA-5A17-41C4-8FD6-611ED707515A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8A71DBA-5A17-41C4-8FD6-611ED707515A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8A71DBA-5A17-41C4-8FD6-611ED707515A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A13968FB-4827-4229-8FE3-1DA4CF9B2BC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A13968FB-4827-4229-8FE3-1DA4CF9B2BC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A13968FB-4827-4229-8FE3-1DA4CF9B2BC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A13968FB-4827-4229-8FE3-1DA4CF9B2BC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
