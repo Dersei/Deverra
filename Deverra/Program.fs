@@ -15,15 +15,16 @@ let rec gcd x y =
     if y = 0 then x
     else gcd y (x % y)
 
-let safeGcd x y = 
+let safeGcd x y max = 
     let result = gcd x y
-    gcd result 32
+    gcd result max
 
 let run (img : Bitmap, filter : Filter) = 
     let resultImg = new Bitmap(img.Width, img.Height)
     let provider = ComputeProvider.Create("*", DeviceType.Gpu)
     let mutable commandQueue = new Brahma.OpenCL.CommandQueue(provider, provider.Devices |> Seq.head)
     let stride = img.Height;
+    let maxSamplers = (OpenCL.Net.Cl.GetDeviceInfo(provider.Devices |> Seq.head, DeviceInfo.MaxSamplers) |> fst).CastTo<int>()
     
     let kernel, kernelprepare, kernelrun = match filter with 
                                             | Filter.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
@@ -32,7 +33,7 @@ let run (img : Bitmap, filter : Filter) =
                                             | Filter.Mean -> provider.Compile(MeanFilter.meanCommand stride)
                                             | _ -> failwith "Wrong filter"
 
-    let gcdSize = safeGcd img.Height img.Width
+    let gcdSize = safeGcd img.Height img.Width maxSamplers
     let d = _2D(img.Height, img.Width, gcdSize, gcdSize)
     let src = Array.init (img.Width * img.Height) (function i -> ColorExt.packColor(img.GetPixel(i / stride, i % stride)))
     let dst = Array.zeroCreate (img.Width * img.Height)
