@@ -9,8 +9,8 @@ open OpenCL.Net
 open FSharp.Core
 open ImageForm
 open Filters
-
-type Filter = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
+open VM
+open System
 
 let rec gcd x y =
     if y = 0 then x
@@ -20,7 +20,7 @@ let safeGcd x y max =
     let result = gcd x y
     gcd result max
 
-let run (img : Bitmap, filter : Filter) = 
+let run (img : Bitmap, filter : Filters) = 
     let resultImg = new Bitmap(img.Width, img.Height)
     let provider = ComputeProvider.Create("*", DeviceType.Gpu)
     let mutable commandQueue = new Brahma.OpenCL.CommandQueue(provider, provider.Devices |> Seq.head)
@@ -28,10 +28,10 @@ let run (img : Bitmap, filter : Filter) =
     let maxSamplers = (OpenCL.Net.Cl.GetDeviceInfo(provider.Devices |> Seq.head, DeviceInfo.MaxSamplers) |> fst).CastTo<int>()
     
     let kernel, kernelprepare, kernelrun = match filter with 
-                                            | Filter.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
-                                            | Filter.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
-                                            | Filter.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
-                                            | Filter.Mean -> provider.Compile(MeanFilter.meanCommand stride)
+                                            | Filters.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
+                                            | Filters.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
+                                            | Filters.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
+                                            | Filters.Mean -> provider.Compile(MeanFilter.meanCommand stride)
                                             | _ -> failwith "Wrong filter"
 
     let gcdSize = safeGcd img.Height img.Width maxSamplers
@@ -46,10 +46,16 @@ let run (img : Bitmap, filter : Filter) =
     
 
 [<EntryPoint>]
-let main _ =
-    let img = new Bitmap(@"Resources/warsaw2.jpg")
-    let resultImg = run(img, Filter.Negative)
+let main args =
+    let (path, filter)  = match args.Length with
+                                | 1 -> (args.[0], Filters.Sepia)
+                                | 2 -> (args.[0], Enum.TryParse(args.[1]) |> snd)
+                                | _ -> failwith "Wrong args"
+
+    let img = new Bitmap(path)
+    let vm = ViewModel(OriginalImage = img, Filter = filter)
     let form = new ImageForm(Visible=true, Height = img.Height, Width = img.Width, StartPosition = FormStartPosition.CenterScreen)
-    form.Start img resultImg
+    vm.Run()
+    form.Start img vm.FilteredImage
     System.Windows.Forms.Application.Run(form)
     0

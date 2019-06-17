@@ -7,9 +7,10 @@ open Brahma.FSharp.OpenCL.Extensions
 open OpenCL.Net
 open FSharp.Core
 open System.Windows.Input
+open System.Diagnostics
 open Filters
 
-type Filter = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
+type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
 
 
 type public ViewModel() =
@@ -17,7 +18,7 @@ type public ViewModel() =
 
     let mutable originalImage : Bitmap = null
     let mutable filteredImage : Bitmap = null
-    let mutable filter : Filter = Filter.Sepia
+    let mutable filter : Filters = Filters.Sepia
     let mutable runCommand : ICommand = null
 
     let rec gcd x y =
@@ -61,10 +62,10 @@ type public ViewModel() =
         let maxSamplers = (OpenCL.Net.Cl.GetDeviceInfo(provider.Devices |> Seq.head, DeviceInfo.MaxSamplers) |> fst).CastTo<int>()
     
         let kernel, kernelprepare, kernelrun = match filter with 
-                                                | Filter.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
-                                                | Filter.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
-                                                | Filter.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
-                                                | Filter.Mean -> provider.Compile(MeanFilter.meanCommand stride)
+                                                | Filters.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
+                                                | Filters.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
+                                                | Filters.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
+                                                | Filters.Mean -> provider.Compile(MeanFilter.meanCommand stride)
                                                 | _ -> failwith "Wrong filter"
 
         let gcdSize = safeGcd originalImage.Height originalImage.Width maxSamplers
@@ -72,7 +73,14 @@ type public ViewModel() =
         let src = Array.init (originalImage.Width * originalImage.Height) (function i -> ColorExt.packColor(originalImage.GetPixel(i / stride, i % stride)))
         let dst = Array.zeroCreate (originalImage.Width * originalImage.Height)
         kernelprepare d src dst
-        commandQueue.Add(kernelrun()) |> ignore
+        let timer = new Stopwatch()
+        timer.Start()
+        commandQueue.Add(kernelrun()).Finish() |> ignore
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
+        timer.Stop()
+        printfn "%A" timer.Elapsed
         Array.iteri (fun i (v:uint32) -> resultImg.SetPixel(i / stride, i % stride, ColorExt.unpackColor(v))) dst
+        commandQueue.Dispose()
+        provider.CloseAllBuffers()
+        provider.Dispose()
         this.FilteredImage <- resultImg

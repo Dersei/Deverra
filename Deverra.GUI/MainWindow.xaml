@@ -17,7 +17,7 @@
         <ObjectDataProvider x:Key="FilterFromEnum" MethodName="GetValues"
                             ObjectType="{x:Type system:Enum}">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="vm:Filter"/>
+                <x:Type TypeName="vm:Filters"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </Window.Resources>
