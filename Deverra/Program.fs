@@ -8,6 +8,7 @@ open Brahma.FSharp.OpenCL.Extensions
 open OpenCL.Net
 open FSharp.Core
 open ImageForm
+open Filters
 
 type Filter = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
 

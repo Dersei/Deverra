@@ -56,11 +56,13 @@
     </Content>
     <Compile Include="ColorExt.fs" />
     <Compile Include="MatrixMultiply.fs" />
-    <Compile Include="MeanFilter.fs" />
-    <Compile Include="NegativeFilter.fs" />
-    <Compile Include="SepiaFilter.fs" />
-    <Compile Include="SobelFilter.fs" />
+    <Compile Include="Filters\SobelFilter.fs" />
+    <Compile Include="Filters\MeanFilter.fs" />
+    <Compile Include="Filters\NegativeFilter.fs" />
+    <Compile Include="Filters\SepiaFilter.fs" />
     <Compile Include="ImageForm.fs" />
+    <Compile Include="VM\ViewModelBase.fs" />
+    <Compile Include="VM\ViewModel.fs" />
     <Compile Include="Program.fs" />
     <None Include="Resources\warsaw.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
