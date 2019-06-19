@@ -9,7 +9,6 @@ open FSharp.Core
 open System.Windows.Input
 open System.Diagnostics
 open Filters
-open System.Collections.Generic
 
 type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
 
@@ -40,7 +39,7 @@ type public ViewModel() =
         and set(value) = 
             filteredImage <- value
             this.OnPropertyChanged(<@ this.FilteredImage @>)
-    member this.Filters
+    member __.Filters
         with get() = filters
         and set(value) = filters <- value
 

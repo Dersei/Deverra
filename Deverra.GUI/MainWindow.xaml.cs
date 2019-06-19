@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows;
@@ -6,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using VM;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
+using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 
 namespace Deverra.GUI
 {
@@ -39,7 +41,7 @@ namespace Deverra.GUI
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new Bitmap(openFileDialog.FileName);
-                Width = bitmap.Width / (double)bitmap.Height * (Height - RunButton.ActualHeight - 50);
+                Width = bitmap.Width / (double)bitmap.Height * (Height - OpenButton.ActualHeight - 50);
             }
         }
 
@@ -98,6 +100,25 @@ namespace Deverra.GUI
             }
             FilterList.UpdateLayout();
             ((ListBoxItem)FilterList.ItemContainerGenerator.ContainerFromIndex(targetIdx)).IsSelected = true;
+        }
+
+        private void SaveButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            var vm = ((ViewModel) DataContext);
+            if(vm.FilteredImage is null) return;
+            var saveFileDialog = new SaveFileDialog()
+            {
+                AddExtension = true,
+                Filter = "Image files | *.bmp;*.gif;*.exif;*.jpg;*.png;*.tiff",
+                DefaultExt = ".png",
+                RestoreDirectory = true,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+        };
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                vm.FilteredImage.Save(saveFileDialog.FileName);
+            }
+
         }
     }
 }

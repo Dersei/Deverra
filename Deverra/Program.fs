@@ -8,15 +8,8 @@ open VM
 open System
 open System.IO
 
-let rec gcd x y =
-    if y = 0 then x
-    else gcd y (x % y)
-
-let safeGcd x y max = 
-    let result = gcd x y
-    gcd result max
-
 [<EntryPoint>]
+[<STAThread>]
 let main args =
     let path = match args.Length with
                | 0 -> failwith "Path not given"  
