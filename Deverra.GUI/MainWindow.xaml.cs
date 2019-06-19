@@ -47,10 +47,11 @@ namespace Deverra.GUI
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new Bitmap(openFileDialog.FileName);
+                ((ViewModel) DataContext).FilteredImage = null;
                 Width = bitmap.Width / (double)bitmap.Height * (Height - OpenButton.ActualHeight - 50);
             }
         }
-        
+
         private bool _isInside;
         private void ListBoxItem_PreviewMouseMoveEvent(object sender, MouseEventArgs e)
         {
@@ -67,7 +68,7 @@ namespace Deverra.GUI
         }
 
         private readonly ObservableCollection<VM.Filters> _filters = new ObservableCollection<VM.Filters>
-        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel, VM.Filters.Mean, VM.Filters.Contrast};
+        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast};
 
         private readonly ObservableCollection<IdFilter> _toApply = new ObservableCollection<IdFilter>();
 
@@ -144,7 +145,7 @@ namespace Deverra.GUI
             var target = (IdFilter)((ListViewItem)(sender)).DataContext;
             _toApply.Remove(target);
         }
-        
+
         private void RatioBox_OnPreviewMouseMove(object sender, MouseEventArgs e)
         {
             e.Handled = true;

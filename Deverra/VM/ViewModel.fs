@@ -10,7 +10,7 @@ open System.Windows.Input
 open System.Diagnostics
 open Filters
 
-type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3 | Contrast = 4
+type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 
 
 
 type public ViewModel() =
@@ -66,6 +66,7 @@ type public ViewModel() =
                                                     | (Filters.Sepia, _) -> provider.Compile(SepiaFilter.sepiaCommand stride)
                                                     | (Filters.Negative, _) -> provider.Compile(NegativeFilter.negativeCommand stride)
                                                     | (Filters.Sobel, _) -> provider.Compile(SobelFilter.sobelCommand stride)
+                                                    | (Filters.UltraSobel, _) -> provider.Compile(UltraSobelFilter.ultraSobelCommand stride)
                                                     | (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
                                                     | (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
                                                     | _ -> failwith "Wrong filter" 

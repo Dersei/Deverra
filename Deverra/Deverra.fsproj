@@ -57,6 +57,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="ColorExt.fs" />
+    <Compile Include="Filters\UltraSobelFilter.fs" />
     <Compile Include="Filters\SobelFilter.fs" />
     <Compile Include="Filters\MeanFilter.fs" />
     <Compile Include="Filters\NegativeFilter.fs" />
