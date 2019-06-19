@@ -25,7 +25,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="15*"></RowDefinition>
-            <RowDefinition Height="2.5*"></RowDefinition>
+            <RowDefinition Height="3.5*"></RowDefinition>
         </Grid.RowDefinitions>
         <Image HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding OriginalImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
         <Image Grid.Row="0" x:Name="FilteredImage" HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding FilteredImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
@@ -34,12 +34,27 @@
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition Width="3*"></ColumnDefinition>
+                <ColumnDefinition Width="3*"></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Button x:Name="OpenButton" Content="{iconPacks:FontAwesome FolderOpenSolid, Width=32, Height=32}" Click="OpenButton_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
             <Button Grid.Column="1" Content="{iconPacks:FontAwesome SaveSolid, Width=32, Height=32}" Click="SaveButton_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
-            <ListBox Grid.Column="2" x:Name="FilterList" ItemsSource="{Binding Source = {StaticResource FilterFromEnum}}" SelectionMode="Multiple" SelectionChanged="FilterList_OnSelectionChanged"></ListBox>
-            <Button Grid.Column="3" Content="{iconPacks:FontAwesome CogsSolid, Width=32, Height=32}" Command="{Binding RunCommand}" controls:ControlsHelper.CornerRadius="0"></Button>
+            <ListView Grid.Column="2" x:Name="FilterList" ItemsSource="{Binding Source = {StaticResource FilterFromEnum}}" SelectionMode="Single" BorderThickness="0,1,1,0"></ListView>
+            <ListView Grid.Column="3" x:Name="ToApplyList" SelectionMode="Single" VerticalContentAlignment="Stretch"  HorizontalContentAlignment="Stretch" AllowDrop="True" Drop="ToApplyList_Drop" DataContext="IdFilter"  >
+                <ListView.ItemTemplate>
+                    <DataTemplate >
+                        <Grid HorizontalAlignment="Stretch" Margin="0" ClipToBounds="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="5*" ></ColumnDefinition>
+                                <ColumnDefinition ></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="{Binding Filter}" HorizontalAlignment="Stretch" Margin="0" ClipToBounds="True"></Label>
+                            <TextBox Name="RatioBox" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0"  ClipToBounds="True" BorderThickness="0" VerticalContentAlignment="Top" PreviewMouseMove="RatioBox_OnPreviewMouseMove" AllowDrop="False" Visibility="{Binding Visibility}" Background="Black" Text="{Binding Ratio}" ></TextBox>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Button Grid.Column="4" Content="{iconPacks:FontAwesome CogsSolid, Width=32, Height=32}" Command="{Binding RunCommand}" Click="ButtonBase_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
         </Grid>
     </Grid>
 </controls:MetroWindow>

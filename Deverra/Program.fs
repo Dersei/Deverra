@@ -8,6 +8,19 @@ open VM
 open System
 open System.IO
 
+let filterValues = Filters.GetNames(typeof<Filters>) |> Array.map (fun item -> item.ToLowerInvariant());
+
+let checkIfEnumCorrect (value : string) = if filterValues |> Array.contains(value.ToLower()) then value else failwith "Incorrect filter type"
+
+let checkIfValueCorrect (value : string) = let result = Int32.TryParse(value)
+                                           if result |> fst then result |> snd else failwith "Incorrect ratio value"
+
+let parseValueWithRatio (value : string) = 
+                                        let split = value.Split '=' 
+                                        let filter = Enum.TryParse(checkIfEnumCorrect split.[0], true) |> snd
+                                        let ratio = checkIfValueCorrect split.[1]
+                                        struct (filter, ratio)
+
 [<EntryPoint>]
 [<STAThread>]
 let main args =
@@ -17,16 +30,15 @@ let main args =
                     match File.Exists(args.[0]) with 
                     | true -> args.[0]
                     | _ -> failwith "Wrong path"  
-               
-    let filterValues = Filters.GetNames(typeof<Filters>) |> Array.map (fun item -> item.ToLowerInvariant());
-    if (args |> Array.skip 1 |> Array.exists (fun item ->  filterValues |> Array.contains item && not (Int32.TryParse(item) |> fst))) then failwith "Wrong filter"
-    let filters = args |> Array.skip 1 |> Array.map (fun item -> Enum.TryParse(item, true) |> snd)  
 
+    let filterValues = Filters.GetNames(typeof<Filters>) |> Array.map (fun item -> item.ToLowerInvariant());
+    let filters = args |> Array.skip 1 |> Array.map (fun item -> if item.Contains "=" then parseValueWithRatio(item) else struct ((Enum.TryParse(checkIfEnumCorrect item, true) |> snd), 0))
+    
     let img = try 
                 new Bitmap(path) 
               with 
                 | :? FileNotFoundException -> failwith "File is not a image";
-    let vm = ViewModel(OriginalImage = img, Filters = filters, Ratio = 100)
+    let vm = ViewModel(OriginalImage = img, Filters = filters)
     let form = new ImageForm(Visible=true, Height = img.Height, Width = img.Width, StartPosition = FormStartPosition.CenterScreen)
     vm.Run()
     form.Start img vm.FilteredImage

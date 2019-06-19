@@ -19,8 +19,7 @@ type public ViewModel() =
     let mutable originalImage : Bitmap = null
     let mutable filteredImage : Bitmap = null
     let mutable runCommand : ICommand = null
-    let mutable filters : Filters[] = Array.empty
-    let mutable ratio : int = 0
+    let mutable filters : struct (Filters * int)[] = Array.empty
 
     let rec gcd x y =
         if y = 0 then x
@@ -40,11 +39,6 @@ type public ViewModel() =
         and set(value) = 
             filteredImage <- value
             this.OnPropertyChanged(<@ this.FilteredImage @>)
-    member this.Ratio 
-           with get() = ratio
-           and set(value) = 
-               ratio <- value
-               this.OnPropertyChanged(<@ this.Ratio @>)
     member __.Filters
         with get() = filters
         and set(value) = filters <- value
@@ -66,14 +60,14 @@ type public ViewModel() =
         let mutable kernels : Kernel<_2D> list = List.empty
         let mutable kernelprepares : (_2D -> uint32 array -> uint32 array -> unit) list = List.empty
         let mutable kernelruns : (unit -> Commands.Run<_2D>) list = List.empty
-        this.Filters <- if this.Filters |> Array.isEmpty then [|Filters.Sepia|] else this.Filters
+        this.Filters <- if this.Filters |> Array.isEmpty then [|(Filters.Sepia,0)|] else this.Filters
         for filter in this.Filters do
             let kernel, kernelprepare, kernelrun = match filter with 
-                                                    | Filters.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
-                                                    | Filters.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
-                                                    | Filters.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
-                                                    | Filters.Mean -> provider.Compile(MeanFilter.meanCommand stride)
-                                                    | Filters.Contrast -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
+                                                    | (Filters.Sepia, _) -> provider.Compile(SepiaFilter.sepiaCommand stride)
+                                                    | (Filters.Negative, _) -> provider.Compile(NegativeFilter.negativeCommand stride)
+                                                    | (Filters.Sobel, _) -> provider.Compile(SobelFilter.sobelCommand stride)
+                                                    | (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
+                                                    | (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
                                                     | _ -> failwith "Wrong filter" 
             kernels <- kernels @ [kernel]
             kernelprepares <- kernelprepares @ [kernelprepare]
