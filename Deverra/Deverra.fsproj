@@ -28,7 +28,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <StartArguments>"Resources/warsaw2.jpg" Negative Sepia</StartArguments>
+    <StartArguments>"Resources/warsaw2.jpg" Contrast</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -60,6 +60,7 @@
     <Compile Include="Filters\SobelFilter.fs" />
     <Compile Include="Filters\MeanFilter.fs" />
     <Compile Include="Filters\NegativeFilter.fs" />
+    <Compile Include="Filters\ContrastFilter.fs" />
     <Compile Include="Filters\SepiaFilter.fs" />
     <Compile Include="ImageForm.fs" />
     <Compile Include="VM\ViewModelBase.fs" />

@@ -10,7 +10,7 @@ open System.Windows.Input
 open System.Diagnostics
 open Filters
 
-type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
+type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3 | Contrast = 4
 
 
 type public ViewModel() =
@@ -20,6 +20,7 @@ type public ViewModel() =
     let mutable filteredImage : Bitmap = null
     let mutable runCommand : ICommand = null
     let mutable filters : Filters[] = Array.empty
+    let mutable ratio : int = 0
 
     let rec gcd x y =
         if y = 0 then x
@@ -39,6 +40,11 @@ type public ViewModel() =
         and set(value) = 
             filteredImage <- value
             this.OnPropertyChanged(<@ this.FilteredImage @>)
+    member this.Ratio 
+           with get() = ratio
+           and set(value) = 
+               ratio <- value
+               this.OnPropertyChanged(<@ this.Ratio @>)
     member __.Filters
         with get() = filters
         and set(value) = filters <- value
@@ -67,6 +73,7 @@ type public ViewModel() =
                                                     | Filters.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
                                                     | Filters.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
                                                     | Filters.Mean -> provider.Compile(MeanFilter.meanCommand stride)
+                                                    | Filters.Contrast -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
                                                     | _ -> failwith "Wrong filter" 
             kernels <- kernels @ [kernel]
             kernelprepares <- kernelprepares @ [kernelprepare]
@@ -86,7 +93,7 @@ type public ViewModel() =
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
         timer.Stop()
         printfn "%A" timer.Elapsed
-        Array.iteri (fun i (v:uint32) -> resultImg.SetPixel(i / stride, i % stride, ColorExt.unpackColor(v))) dst
+        dst |> Array.iteri (fun i (v:uint32) -> resultImg.SetPixel(i / stride, i % stride, ColorExt.unpackColor(v)))
         commandQueue.Dispose()
         provider.CloseAllBuffers()
         provider.Dispose()
