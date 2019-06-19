@@ -60,8 +60,10 @@ namespace Deverra.GUI
                 e.Handled = true;
                 return;
             }
+            
             if (sender is ListViewItem draggedItem && e.LeftButton == MouseButtonState.Pressed)
             {
+                ArrowLabel.Visibility = Visibility.Collapsed;
                 _isInside = draggedItem.GetParentObject().GetParentObject().GetParentObject().GetParentObject().GetParentObject().GetParentObject().GetParentObject().GetParentObject() == ToApplyList;
                 DragDrop.DoDragDrop(draggedItem, draggedItem.DataContext, DragDropEffects.Move);
             }
@@ -119,6 +121,7 @@ namespace Deverra.GUI
             _toApply.Add(new IdFilter(droppedData));
             ToApplyList.UpdateLayout();
             ((ListViewItem)ToApplyList.ItemContainerGenerator.ContainerFromIndex(_toApply.Count - 1)).IsSelected = true;
+            
         }
 
         private void SaveButton_OnClick(object sender, RoutedEventArgs e)

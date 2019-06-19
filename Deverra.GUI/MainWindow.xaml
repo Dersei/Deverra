@@ -54,6 +54,23 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            <Label x:Name="ArrowLabel" Grid.Column="2" Grid.ColumnSpan="3" Content="{iconPacks:FontAwesome LongArrowAltRightSolid, Width=32, Height=32}" Width="250" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Label.Style>
+                    <Style TargetType="Label">
+                        <Style.Triggers>
+                            <EventTrigger RoutedEvent="Label.Loaded">
+                                <EventTrigger.Actions>
+                                    <BeginStoryboard  >
+                                        <Storyboard TargetProperty="Width">
+                                            <DoubleAnimation Storyboard.TargetProperty="Width" From="250" To="50" Duration="0:0:2" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger.Actions>
+                            </EventTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Label.Style>
+            </Label>
             <Button Grid.Column="4" Content="{iconPacks:FontAwesome CogsSolid, Width=32, Height=32}" Command="{Binding RunCommand}" Click="ButtonBase_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
         </Grid>
     </Grid>
