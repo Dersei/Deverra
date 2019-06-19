@@ -24,7 +24,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="15*"></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="2.5*"></RowDefinition>
         </Grid.RowDefinitions>
         <Image HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding OriginalImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
         <Image Grid.Row="0" x:Name="FilteredImage" HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding FilteredImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
@@ -35,9 +35,7 @@
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Button x:Name="RunButton" Content="Open image" Click="OpenButton_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
-            <ComboBox Grid.Column="1" x:Name="FilterCombo" ItemsSource="{Binding Source={StaticResource FilterFromEnum}}"
-                      SelectedItem="{Binding Path=Filter, Mode=TwoWay}">
-            </ComboBox>
+            <ListBox Grid.Column="1" x:Name="FilterList" ItemsSource="{Binding Source = {StaticResource FilterFromEnum}}" SelectionMode="Multiple" SelectionChanged="FilterList_OnSelectionChanged"></ListBox>
             <Button Grid.Column="2" Content="Run" Command="{Binding RunCommand}" controls:ControlsHelper.CornerRadius="0"></Button>
         </Grid>
     </Grid>

@@ -1,7 +1,11 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Windows;
-using System.Windows.Forms;
+using System.Windows.Controls;
+using System.Windows.Input;
 using VM;
+using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 
 namespace Deverra.GUI
 {
@@ -13,9 +17,17 @@ namespace Deverra.GUI
         public MainWindow()
         {
             InitializeComponent();
+
+            FilterList.ItemsSource = _filters;
+
+            var itemContainerStyle = new Style(typeof(ListBoxItem));
+            itemContainerStyle.Setters.Add(new Setter(AllowDropProperty, true));
+            itemContainerStyle.Setters.Add(new EventSetter(PreviewMouseMoveEvent, new MouseEventHandler(ListBoxItem_PreviewMouseMoveEvent)));
+            itemContainerStyle.Setters.Add(new EventSetter(DropEvent, new DragEventHandler(FilterList_Drop)));
+            FilterList.ItemContainerStyle = itemContainerStyle;
         }
 
-        private void FilteredImage_OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        private void FilteredImage_OnMouseMove(object sender, MouseEventArgs e)
         {
             var position = e.GetPosition(this);
             FilteredImage.Width = position.X;
@@ -27,8 +39,65 @@ namespace Deverra.GUI
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new Bitmap(openFileDialog.FileName);
-                Width = (bitmap.Width / (double)bitmap.Height) * (Height - RunButton.ActualHeight - 50);
+                Width = bitmap.Width / (double)bitmap.Height * (Height - RunButton.ActualHeight - 50);
             }
+        }
+
+        private void FilterList_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var filterList = new List<VM.Filters>();
+
+            for (var i = 0; i < FilterList.Items.Count; i++)
+            {
+                FilterList.UpdateLayout();
+                var item = (ListBoxItem)FilterList.ItemContainerGenerator.ContainerFromIndex(i);
+                if (item.IsSelected)
+                {
+                    filterList.Add((VM.Filters)FilterList.Items[i]);
+                }
+            }
+
+            ((ViewModel)DataContext).Filters = filterList.ToArray();
+        }
+
+        private static void ListBoxItem_PreviewMouseMoveEvent(object sender, MouseEventArgs e)
+        {
+
+            if (sender is ListBoxItem draggedItem && e.RightButton == MouseButtonState.Pressed)
+            {
+                draggedItem.IsSelected = true;
+                DragDrop.DoDragDrop(draggedItem, draggedItem.DataContext, DragDropEffects.Move);
+                draggedItem.IsSelected = true;
+            }
+        }
+
+        readonly ObservableCollection<VM.Filters> _filters = new ObservableCollection<VM.Filters>
+        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel, VM.Filters.Mean};
+
+        private void FilterList_Drop(object sender, DragEventArgs e)
+        {
+            var droppedData = (VM.Filters)e.Data.GetData(typeof(VM.Filters));
+            var target = (VM.Filters)((ListBoxItem)(sender)).DataContext;
+
+            var removedIdx = FilterList.Items.IndexOf(droppedData);
+            var targetIdx = FilterList.Items.IndexOf(target);
+
+            if (removedIdx < targetIdx)
+            {
+                _filters.Insert(targetIdx + 1, droppedData);
+                _filters.RemoveAt(removedIdx);
+            }
+            else
+            {
+                var remIdx = removedIdx + 1;
+                if (_filters.Count + 1 > remIdx)
+                {
+                    _filters.Insert(targetIdx, droppedData);
+                    _filters.RemoveAt(remIdx);
+                }
+            }
+            FilterList.UpdateLayout();
+            ((ListBoxItem)FilterList.ItemContainerGenerator.ContainerFromIndex(targetIdx)).IsSelected = true;
         }
     }
 }

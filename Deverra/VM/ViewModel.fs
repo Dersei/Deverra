@@ -9,6 +9,7 @@ open FSharp.Core
 open System.Windows.Input
 open System.Diagnostics
 open Filters
+open System.Collections.Generic
 
 type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | Mean = 3
 
@@ -18,8 +19,8 @@ type public ViewModel() =
 
     let mutable originalImage : Bitmap = null
     let mutable filteredImage : Bitmap = null
-    let mutable filter : Filters = Filters.Sepia
     let mutable runCommand : ICommand = null
+    let mutable filters : Filters[] = Array.empty
 
     let rec gcd x y =
         if y = 0 then x
@@ -39,12 +40,9 @@ type public ViewModel() =
         and set(value) = 
             filteredImage <- value
             this.OnPropertyChanged(<@ this.FilteredImage @>)
-    member this.Filter 
-        with get() = filter
-        and set(value) = 
-            filter <- value
-            this.OnPropertyChanged(<@ this.Filter @>)
-    
+    member this.Filters
+        with get() = filters
+        and set(value) = filters <- value
 
     member this.RunCommand
         with get() = if runCommand  = null then 
@@ -60,22 +58,32 @@ type public ViewModel() =
         let mutable commandQueue = new Brahma.OpenCL.CommandQueue(provider, provider.Devices |> Seq.head)
         let stride = originalImage.Height;
         let maxSamplers = (OpenCL.Net.Cl.GetDeviceInfo(provider.Devices |> Seq.head, DeviceInfo.MaxSamplers) |> fst).CastTo<int>()
-    
-        let kernel, kernelprepare, kernelrun = match filter with 
-                                                | Filters.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
-                                                | Filters.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
-                                                | Filters.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
-                                                | Filters.Mean -> provider.Compile(MeanFilter.meanCommand stride)
-                                                | _ -> failwith "Wrong filter"
+        let mutable kernels : Kernel<_2D> list = List.empty
+        let mutable kernelprepares : (_2D -> uint32 array -> uint32 array -> unit) list = List.empty
+        let mutable kernelruns : (unit -> Commands.Run<_2D>) list = List.empty
+        this.Filters <- if this.Filters |> Array.isEmpty then [|Filters.Sepia|] else this.Filters
+        for filter in this.Filters do
+            let kernel, kernelprepare, kernelrun = match filter with 
+                                                    | Filters.Sepia -> provider.Compile(SepiaFilter.sepiaCommand stride)
+                                                    | Filters.Negative -> provider.Compile(NegativeFilter.negativeCommand stride)
+                                                    | Filters.Sobel -> provider.Compile(SobelFilter.sobelCommand stride)
+                                                    | Filters.Mean -> provider.Compile(MeanFilter.meanCommand stride)
+                                                    | _ -> failwith "Wrong filter" 
+            kernels <- kernels @ [kernel]
+            kernelprepares <- kernelprepares @ [kernelprepare]
+            kernelruns <- kernelruns @ [kernelrun]
+        
 
         let gcdSize = safeGcd originalImage.Height originalImage.Width maxSamplers
         let d = _2D(originalImage.Height, originalImage.Width, gcdSize, gcdSize)
         let src = Array.init (originalImage.Width * originalImage.Height) (function i -> ColorExt.packColor(originalImage.GetPixel(i / stride, i % stride)))
         let dst = Array.zeroCreate (originalImage.Width * originalImage.Height)
-        kernelprepare d src dst
+        kernelprepares.Head d src dst
+        kernelprepares |> List.skip 1 |> List.iter (fun item -> item d dst dst)
+
         let timer = new Stopwatch()
         timer.Start()
-        commandQueue.Add(kernelrun()).Finish() |> ignore
+        kernelruns |> List.iter (fun item -> commandQueue.Add(item()).Finish |> ignore) 
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
         timer.Stop()
         printfn "%A" timer.Elapsed
