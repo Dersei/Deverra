@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using VM;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
@@ -47,7 +50,7 @@ namespace Deverra.GUI
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new Bitmap(openFileDialog.FileName);
-                ((ViewModel) DataContext).FilteredImage = null;
+                ((ViewModel)DataContext).FilteredImage = null;
                 Width = bitmap.Width / (double)bitmap.Height * (Height - OpenButton.ActualHeight - 50);
             }
         }
@@ -60,7 +63,7 @@ namespace Deverra.GUI
                 e.Handled = true;
                 return;
             }
-            
+
             if (sender is ListViewItem draggedItem && e.LeftButton == MouseButtonState.Pressed)
             {
                 ArrowLabel.Visibility = Visibility.Collapsed;
@@ -121,7 +124,7 @@ namespace Deverra.GUI
             _toApply.Add(new IdFilter(droppedData));
             ToApplyList.UpdateLayout();
             ((ListViewItem)ToApplyList.ItemContainerGenerator.ContainerFromIndex(_toApply.Count - 1)).IsSelected = true;
-            
+
         }
 
         private void SaveButton_OnClick(object sender, RoutedEventArgs e)
@@ -154,9 +157,17 @@ namespace Deverra.GUI
             e.Handled = true;
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
+            var timer = new Stopwatch();
+            timer.Start();
             ((ViewModel)DataContext).Filters = ToApplyList.Items.Cast<IdFilter>().Select(filter => ((VM.Filters)filter, filter.Ratio)).ToArray();
+            var controller = await this.ShowProgressAsync("Processing...", "Processing...");
+            //((ViewModel)DataContext).Run();
+            await Task.Run(((ViewModel)DataContext).Run);
+            await controller.CloseAsync();
+            timer.Stop();
+            Console.WriteLine(timer.Elapsed);
         }
 
         private class IdFilter : IEquatable<IdFilter>

@@ -71,7 +71,7 @@
                     </Style>
                 </Label.Style>
             </Label>
-            <Button Grid.Column="4" Content="{iconPacks:FontAwesome CogsSolid, Width=32, Height=32}" Command="{Binding RunCommand}" Click="ButtonBase_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
+            <Button Grid.Column="4" Content="{iconPacks:FontAwesome CogsSolid, Width=32, Height=32}" Click="ButtonBase_OnClick" controls:ControlsHelper.CornerRadius="0"></Button>
         </Grid>
     </Grid>
 </controls:MetroWindow>

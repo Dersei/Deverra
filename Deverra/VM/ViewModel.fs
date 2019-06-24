@@ -87,9 +87,10 @@ type public ViewModel() =
         kernelruns |> List.iter (fun item -> commandQueue.Add(item()).Finish |> ignore) 
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
         timer.Stop()
-        printfn "%A" timer.Elapsed
+        printfn "Finished processsing %A" timer.Elapsed
         dst |> Array.iteri (fun i (v:uint32) -> resultImg.SetPixel(i / stride, i % stride, ColorExt.unpackColor(v)))
         commandQueue.Dispose()
         provider.CloseAllBuffers()
         provider.Dispose()
+        printfn "Finished writing image"
         this.FilteredImage <- resultImg
