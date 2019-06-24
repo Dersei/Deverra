@@ -162,10 +162,10 @@ namespace Deverra.GUI
             var timer = new Stopwatch();
             timer.Start();
             ((ViewModel)DataContext).Filters = ToApplyList.Items.Cast<IdFilter>().Select(filter => ((VM.Filters)filter, filter.Ratio)).ToArray();
-            var controller = await this.ShowProgressAsync("Processing...", "Processing...");
-            //((ViewModel)DataContext).Run();
-            await Task.Run(((ViewModel)DataContext).Run);
-            await controller.CloseAsync();
+            //var controller = await this.ShowProgressAsync("Processing...", "Processing...");
+            ((ViewModel)DataContext).Run();
+            //await Task.Run(((ViewModel)DataContext).Run);
+            //await controller.CloseAsync();
             timer.Stop();
             Console.WriteLine(timer.Elapsed);
         }

@@ -9,6 +9,7 @@ open FSharp.Core
 open System.Windows.Input
 open System.Diagnostics
 open Filters
+open System.Windows.Media.Imaging
 
 type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 
 
@@ -20,6 +21,7 @@ type public ViewModel() =
     let mutable filteredImage : Bitmap = null
     let mutable runCommand : ICommand = null
     let mutable filters : struct (Filters * int)[] = Array.empty
+    let mutable resultImage : WriteableBitmap = null
 
     let rec gcd x y =
         if y = 0 then x
@@ -39,6 +41,11 @@ type public ViewModel() =
         and set(value) = 
             filteredImage <- value
             this.OnPropertyChanged(<@ this.FilteredImage @>)
+    member this.ResultImage 
+        with get() = resultImage
+        and set(value) = 
+            resultImage <- value
+            this.OnPropertyChanged(<@ this.ResultImage @>)
     member __.Filters
         with get() = filters
         and set(value) = filters <- value
@@ -94,3 +101,5 @@ type public ViewModel() =
         provider.Dispose()
         printfn "Finished writing image"
         this.FilteredImage <- resultImg
+        let wbm = WriteableBitmap(originalImage.Width, originalImage.Height, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
+        this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray)

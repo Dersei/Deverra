@@ -9,7 +9,7 @@ namespace Deverra.GUI
 {
     internal class BitmapConverter : IValueConverter
     {
-        static BitmapImage BitmapToImageSource(Bitmap bitmap)
+        private static BitmapImage BitmapToImageSource(Bitmap bitmap)
         {
             using (var memory = new MemoryStream())
             {
@@ -20,7 +20,6 @@ namespace Deverra.GUI
                 bitmapImage.StreamSource = memory;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.EndInit();
-
                 return bitmapImage;
             }
         }

@@ -28,7 +28,7 @@
             <RowDefinition Height="3.5*"></RowDefinition>
         </Grid.RowDefinitions>
         <Image HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding OriginalImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
-        <Image Grid.Row="0" x:Name="FilteredImage" HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding FilteredImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
+        <Image Grid.Row="0" x:Name="FilteredImage" HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding ResultImage, Mode=OneWay}"></Image>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
