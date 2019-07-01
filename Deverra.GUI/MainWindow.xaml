@@ -93,8 +93,8 @@
                                 <ColumnDefinition Width="5*" ></ColumnDefinition>
                                 <ColumnDefinition ></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <Label Content="{Binding Filter}" HorizontalAlignment="Stretch" Margin="0" ClipToBounds="True"></Label>
-                            <TextBox Name="RatioBox" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0"  ClipToBounds="True" BorderThickness="0" VerticalContentAlignment="Top" PreviewMouseMove="RatioBox_OnPreviewMouseMove" AllowDrop="False" Visibility="{Binding Visibility}" Background="Black" Text="{Binding Ratio}" ></TextBox>
+                            <Label Content="{Binding Filter}" HorizontalAlignment="Stretch" Margin="0" ClipToBounds="True" ToolTip="{Binding Tip}"></Label>
+                            <TextBox Name="RatioBox" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0"  ClipToBounds="True" BorderThickness="0" VerticalContentAlignment="Top" PreviewMouseMove="RatioBox_OnPreviewMouseMove" AllowDrop="False" Visibility="{Binding Visibility}" Background="Black" Text="{Binding Ratio}" ToolTip="{Binding Tip}"></TextBox>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>

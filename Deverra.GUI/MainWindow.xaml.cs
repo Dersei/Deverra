@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -223,56 +224,6 @@ namespace Deverra.GUI
             timer.Stop();
             Console.WriteLine(timer.Elapsed);
         }
-
-        private class IdFilter : IEquatable<IdFilter>
-        {
-            private readonly Guid _id;
-            public VM.Filters Filter { get; }
-            public Visibility Visibility { get; }
-            public int Ratio { get; set; }
-
-            private readonly VM.Filters[] _withRatio =
-            {
-                VM.Filters.Contrast,
-                VM.Filters.Saturation,
-                VM.Filters.Hue
-            };
-
-            public IdFilter(VM.Filters filter)
-            {
-                _id = Guid.NewGuid();
-                Filter = filter;
-                Visibility = _withRatio.Contains(filter) ? Visibility.Visible : Visibility.Collapsed;
-                Ratio = 0;
-            }
-
-            public static implicit operator VM.Filters(IdFilter idFilter)
-            {
-                return idFilter.Filter;
-            }
-
-            public override string ToString()
-            {
-                return Filter.ToString();
-            }
-
-            public bool Equals(IdFilter other)
-            {
-                return _id.Equals(other?._id);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is IdFilter other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return _id.GetHashCode();
-            }
-        }
-
-
         private void SwitchSides()
         {
             if (_isFrozen)

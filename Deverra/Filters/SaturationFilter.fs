@@ -21,7 +21,10 @@ module SaturationFilter =
            let mutable tgC = 0.0;
            let mutable trC = 0.0;
            if tb > 255.0 then tbC <- 255.0 else tbC <- tb
+           if tb < 0.0 then tbC <- 0.0 else tbC <- tbC
            if tg > 255.0 then tgC <- 255.0 else tgC <- tg
+           if tg < 0.0 then tgC <- 0.0 else tgC <- tgC
            if tr > 255.0 then trC <- 255.0 else trC <- tr
+           if tr < 0.0 then trC <- 0.0 else trC <- trC
            let color = ((uint32(255) <<< 24) + (uint32(tbC) <<< 16) + (uint32(tgC) <<< 8) + uint32(trC))
            dst.[i + stride * j] <- color @>
