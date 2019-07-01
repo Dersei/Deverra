@@ -160,15 +160,15 @@ namespace Deverra.GUI
                 AddExtension = true,
                 Filter = "Image files | *.bmp;*.gif;*.exif;*.jpg;*.png;*.tiff",
                 DefaultExt = ".png",
-                RestoreDirectory = true,
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+                RestoreDirectory = true
             };
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 if (_isFrozen)
                 {
                     var writeable = vm.OriginalImage.Clone();
-                    writeable.Blit(new Rect(0, 0, GetFilteredWidth(writeable), writeable.PixelHeight), vm.ResultImage, new Rect(new Size(GetFilteredWidth(writeable), vm.ResultImage.PixelHeight)), WriteableBitmapExtensions.BlendMode.None);
+                    var w = GetFilteredWidth(writeable);
+                    writeable.Blit(GetFilteredRect(writeable), vm.ResultImage, GetFilteredRect(writeable), WriteableBitmapExtensions.BlendMode.None);
                     writeable.Save(saveFileDialog.FileName);
                     return;
                 }
@@ -177,9 +177,29 @@ namespace Deverra.GUI
 
         }
 
+        private Rect GetFilteredRect(WriteableBitmap bitmap)
+        {
+            return new Rect(GetFilteredX(bitmap), GetFilteredY(bitmap), GetFilteredWidth(bitmap), GetFilteredHeight(bitmap));
+        }
+
+        private double GetFilteredX(WriteableBitmap bitmap)
+        {
+            return _filteredGeometry.Rect.X * bitmap.PixelHeight / FilteredImage.ActualHeight;
+        }
+
+        private double GetFilteredY(WriteableBitmap bitmap)
+        {
+            return _filteredGeometry.Rect.Y * bitmap.PixelWidth / FilteredImage.ActualWidth;
+        }
+
         private double GetFilteredWidth(WriteableBitmap bitmap)
         {
-            return FilteredImage.Width * bitmap.PixelHeight / FilteredImage.ActualHeight;
+            return _filteredGeometry.Rect.Width * bitmap.PixelHeight / FilteredImage.ActualHeight;
+        }
+
+        private double GetFilteredHeight(WriteableBitmap bitmap)
+        {
+            return _filteredGeometry.Rect.Height * bitmap.PixelWidth / FilteredImage.ActualWidth;
         }
 
         private void ToApplyListItem_OnMouseRightButtonUpPreview(object sender, MouseButtonEventArgs e)
@@ -247,6 +267,21 @@ namespace Deverra.GUI
         }
 
 
+        private void SwitchSides()
+        {
+            if (_isFrozen)
+            {
+                _isFrozen = false;
+                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+                _isFrozen = true;
+            }
+            else
+            {
+                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+            }
+        }
+
+
         private bool _isFrozen;
         private bool _isReversed;
         private bool _isVertical;
@@ -259,12 +294,12 @@ namespace Deverra.GUI
             if (e.Key == Key.R)
             {
                 _isReversed = !_isReversed;
-                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+                SwitchSides();
             }
             if (e.Key == Key.T)
             {
                 _isVertical = !_isVertical;
-                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+                SwitchSides();
             }
         }
 
