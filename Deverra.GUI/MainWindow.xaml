@@ -9,6 +9,8 @@
         xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
+        ShowIconOnTitleBar="True"
+        Icon="deverra_icon.ico"
         Title="Deverra" Height="600" Width="800"
         KeyDown="MainWindow_OnKeyDown">
     <Window.DataContext>
