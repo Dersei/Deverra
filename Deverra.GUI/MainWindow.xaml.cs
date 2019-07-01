@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -35,13 +36,32 @@ namespace Deverra.GUI
             filtersContainerStyle.Setters.Add(new EventSetter(PreviewMouseMoveEvent, new MouseEventHandler(ListBoxItem_PreviewMouseMoveEvent)));
             FilterList.ItemContainerStyle = filtersContainerStyle;
             ToApplyList.ItemContainerStyle = toApplyContainerStyle;
+            _filteredGeometry = new RectangleGeometry(new Rect(new Size(FilteredImage.ActualWidth, FilteredImage.ActualHeight)));
+            FilteredImage.Clip = _filteredGeometry;
         }
 
+        private readonly RectangleGeometry _filteredGeometry;
         private void FilteredImage_OnMouseMove(object sender, MouseEventArgs e)
         {
             if (_isFrozen) return;
-            var position = e.GetPosition(this);
-            FilteredImage.Width = position.X;
+            var position = e.GetPosition(FilteredImage);
+
+            if (!_isReversed && !_isVertical)
+            {
+                _filteredGeometry.Rect = new Rect(0, 0, position.X, FilteredImage.ActualHeight);
+            }
+            else if (!_isVertical && FilteredImage.ActualWidth - position.X > 0)
+            {
+                _filteredGeometry.Rect = new Rect(position.X, 0, FilteredImage.ActualWidth - position.X, FilteredImage.ActualHeight);
+            }
+            else if (!_isReversed && _isVertical && FilteredImage.ActualHeight - position.Y > 0)
+            {
+                _filteredGeometry.Rect = new Rect(0, position.Y, FilteredImage.ActualWidth, FilteredImage.ActualHeight - position.Y);
+            }
+            else if (_isVertical && FilteredImage.ActualHeight - position.Y > 0)
+            {
+                _filteredGeometry.Rect = new Rect(0, 0, FilteredImage.ActualWidth, position.Y);
+            }
         }
 
         private void OpenButton_OnClick(object sender, RoutedEventArgs e)
@@ -224,11 +244,23 @@ namespace Deverra.GUI
 
 
         private bool _isFrozen;
+        private bool _isReversed;
+        private bool _isVertical;
         private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.F)
             {
                 _isFrozen = !_isFrozen;
+            }
+            if (e.Key == Key.R)
+            {
+                _isReversed = !_isReversed;
+                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+            }
+            if (e.Key == Key.T)
+            {
+                _isVertical = !_isVertical;
+                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
             }
         }
     }
