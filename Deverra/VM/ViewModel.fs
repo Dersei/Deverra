@@ -12,6 +12,7 @@ open Filters
 open System.Windows.Media.Imaging
 
 type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 
+type WBeX = WriteableBitmapExtensions
 
 
 type public ViewModel() =
@@ -101,5 +102,5 @@ type public ViewModel() =
         provider.Dispose()
         printfn "Finished writing image"
         this.FilteredImage <- resultImg
-        let wbm = WriteableBitmap(originalImage.Width, originalImage.Height, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
-        this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray)
+        let wbm = WriteableBitmap(originalImage.Height, originalImage.Width, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
+        this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray).Rotate(90).Flip(WBeX.FlipMode.Vertical)
