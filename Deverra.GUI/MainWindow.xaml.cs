@@ -75,6 +75,7 @@ namespace Deverra.GUI
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new WriteableBitmap(new BitmapImage(new Uri(openFileDialog.FileName)));
                 Width = bitmap.PixelWidth / (double)bitmap.PixelHeight * (Height - OpenButton.ActualHeight - 50);
+                ((ViewModel) DataContext).ResultImage = null;
             }
         }
 
