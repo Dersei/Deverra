@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -41,6 +39,7 @@ namespace Deverra.GUI
 
         private void FilteredImage_OnMouseMove(object sender, MouseEventArgs e)
         {
+            if (_isFrozen) return;
             var position = e.GetPosition(this);
             FilteredImage.Width = position.X;
         }
@@ -141,9 +140,22 @@ namespace Deverra.GUI
             };
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
+                if (_isFrozen)
+                {
+                    var writeable = vm.OriginalImage.Clone();
+                    var width = GetFilteredWidth(writeable);
+                    writeable.Blit(new Rect(0, 0, GetFilteredWidth(writeable), writeable.PixelHeight), vm.ResultImage, new Rect(new Size(GetFilteredWidth(writeable), vm.ResultImage.PixelHeight)), WriteableBitmapExtensions.BlendMode.None);
+                    writeable.Save(saveFileDialog.FileName);
+                    return;
+                }
                 vm.ResultImage.Save(saveFileDialog.FileName);
             }
 
+        }
+
+        private double GetFilteredWidth(WriteableBitmap bitmap)
+        {
+            return FilteredImage.Width * bitmap.PixelHeight / FilteredImage.ActualHeight;
         }
 
         private void ToApplyListItem_OnMouseRightButtonUpPreview(object sender, MouseButtonEventArgs e)
@@ -162,10 +174,9 @@ namespace Deverra.GUI
             var timer = new Stopwatch();
             timer.Start();
             ((ViewModel)DataContext).Filters = ToApplyList.Items.Cast<IdFilter>().Select(filter => ((VM.Filters)filter, filter.Ratio)).ToArray();
-            //var controller = await this.ShowProgressAsync("Processing...", "Processing...");
+            var controller = await this.ShowProgressAsync("Processing...", "Processing...");
             ((ViewModel)DataContext).Run();
-            //await Task.Run(((ViewModel)DataContext).Run);
-            //await controller.CloseAsync();
+            await controller.CloseAsync();
             timer.Stop();
             Console.WriteLine(timer.Elapsed);
         }
@@ -208,6 +219,16 @@ namespace Deverra.GUI
             public override int GetHashCode()
             {
                 return Id.GetHashCode();
+            }
+        }
+
+
+        private bool _isFrozen;
+        private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F)
+            {
+                _isFrozen = !_isFrozen;
             }
         }
     }

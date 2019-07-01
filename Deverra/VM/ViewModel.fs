@@ -65,11 +65,11 @@ type public ViewModel() =
         for filter in this.Filters do
             let kernel, kernelprepare, kernelrun = match filter with 
                                                     | (Filters.Sepia, _) -> provider.Compile(SepiaFilter.sepiaCommand stride)
-                                                    //| (Filters.Negative, _) -> provider.Compile(NegativeFilter.negativeCommand stride)
-                                                    //| (Filters.Sobel, _) -> provider.Compile(SobelFilter.sobelCommand stride)
-                                                    //| (Filters.UltraSobel, _) -> provider.Compile(UltraSobelFilter.ultraSobelCommand stride)
-                                                    //| (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
-                                                    //| (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
+                                                    | (Filters.Negative, _) -> provider.Compile(NegativeFilter.negativeCommand stride)
+                                                    | (Filters.Sobel, _) -> provider.Compile(SobelFilter.sobelCommand stride)
+                                                    | (Filters.UltraSobel, _) -> provider.Compile(UltraSobelFilter.ultraSobelCommand stride)
+                                                    | (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
+                                                    | (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
                                                     | _ -> failwith "Wrong filter" 
             kernels <- kernels @ [kernel]
             kernelprepares <- kernelprepares @ [kernelprepare]
@@ -78,7 +78,11 @@ type public ViewModel() =
 
         let gcdSize = safeGcd originalImage.PixelHeight originalImage.PixelWidth maxSamplers
         let d = _2D(originalImage.PixelHeight, originalImage.PixelWidth, gcdSize, gcdSize)
-        let src = Array.init (originalImage.PixelWidth * originalImage.PixelHeight) (function i -> ColorExt.packColor(originalImage.GetPixel(i / stride, i % stride)))
+        let timerSrc = new Stopwatch()
+        timerSrc.Start()
+        let src = (originalImage.Rotate(90).ToByteArray() |> ColorExt.packBytes)
+        timerSrc.Stop()
+        printfn "Finished reading %A" timerSrc.Elapsed
         let dst = Array.zeroCreate (originalImage.PixelWidth * originalImage.PixelHeight)
         kernelprepares.Head d src dst
         kernelprepares |> List.skip 1 |> List.iter (fun item -> item d dst dst)
@@ -94,4 +98,4 @@ type public ViewModel() =
         provider.Dispose()
         printfn "Finished writing image"
         let wbm = WriteableBitmap(originalImage.PixelHeight, originalImage.PixelWidth, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
-        this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray).Rotate(90).Flip(WBeX.FlipMode.Vertical)
+        this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray).Rotate(270)
