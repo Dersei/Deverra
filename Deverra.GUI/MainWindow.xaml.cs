@@ -95,14 +95,14 @@ namespace Deverra.GUI
         }
 
         private readonly ObservableCollection<VM.Filters> _filters = new ObservableCollection<VM.Filters>
-        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast};
+        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast, VM.Filters.Saturation, VM.Filters.Hue};
 
         private readonly ObservableCollection<IdFilter> _toApply = new ObservableCollection<IdFilter>();
 
         private void ToApplyListItem_Drop(object sender, DragEventArgs e)
         {
             var data = e.Data.GetData(typeof(IdFilter));
-            var droppedData = data is null ? new IdFilter((VM.Filters)(e.Data.GetData(typeof(VM.Filters))?? VM.Filters.Sepia)) : (IdFilter)e.Data.GetData(typeof(IdFilter));
+            var droppedData = data is null ? new IdFilter((VM.Filters)(e.Data.GetData(typeof(VM.Filters)) ?? VM.Filters.Sepia)) : (IdFilter)e.Data.GetData(typeof(IdFilter));
             if (droppedData is null) return;
             var target = (IdFilter)((ListViewItem)sender).DataContext;
             e.Handled = true;
@@ -144,7 +144,7 @@ namespace Deverra.GUI
                 return;
             }
 
-            var droppedData = (VM.Filters) (e.Data.GetData(typeof(VM.Filters)) ?? VM.Filters.Sepia);
+            var droppedData = (VM.Filters)(e.Data.GetData(typeof(VM.Filters)) ?? VM.Filters.Sepia);
             _toApply.Add(new IdFilter(droppedData));
             ToApplyList.UpdateLayout();
             ((ListViewItem)ToApplyList.ItemContainerGenerator.ContainerFromIndex(_toApply.Count - 1)).IsSelected = true;
@@ -167,7 +167,6 @@ namespace Deverra.GUI
                 if (_isFrozen)
                 {
                     var writeable = vm.OriginalImage.Clone();
-                    var w = GetFilteredWidth(writeable);
                     writeable.Blit(GetFilteredRect(writeable), vm.ResultImage, GetFilteredRect(writeable), WriteableBitmapExtensions.BlendMode.None);
                     writeable.Save(saveFileDialog.FileName);
                     return;
@@ -232,11 +231,18 @@ namespace Deverra.GUI
             public Visibility Visibility { get; }
             public int Ratio { get; set; }
 
+            private readonly VM.Filters[] _withRatio =
+            {
+                VM.Filters.Contrast,
+                VM.Filters.Saturation,
+                VM.Filters.Hue
+            };
+
             public IdFilter(VM.Filters filter)
             {
                 _id = Guid.NewGuid();
                 Filter = filter;
-                Visibility = filter == VM.Filters.Contrast ? Visibility.Visible : Visibility.Collapsed;
+                Visibility = _withRatio.Contains(filter) ? Visibility.Visible : Visibility.Collapsed;
                 Ratio = 0;
             }
 

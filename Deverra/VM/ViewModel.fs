@@ -1,6 +1,5 @@
 ﻿namespace VM
 
-open System.Drawing
 open Brahma.OpenCL
 open Brahma.FSharp.OpenCL.Core
 open Brahma.FSharp.OpenCL.Extensions
@@ -11,7 +10,7 @@ open System.Diagnostics
 open Filters
 open System.Windows.Media.Imaging
 
-type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 
+type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 | Saturation = 6 | Hue = 7
 type WBeX = WriteableBitmapExtensions
 
 
@@ -70,6 +69,8 @@ type public ViewModel() =
                                                     | (Filters.UltraSobel, _) -> provider.Compile(UltraSobelFilter.ultraSobelCommand stride)
                                                     | (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
                                                     | (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
+                                                    | (Filters.Saturation, ratio) -> provider.Compile(SaturationFilter.saturationCommand stride (float(ratio)/100.0))
+                                                    | (Filters.Hue, ratio) -> provider.Compile(HueFilter.hueCommand stride (float(ratio)))
                                                     | _ -> failwith "Wrong filter" 
             kernels <- kernels @ [kernel]
             kernelprepares <- kernelprepares @ [kernelprepare]

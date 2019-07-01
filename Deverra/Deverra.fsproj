@@ -63,6 +63,8 @@
     <Compile Include="Filters\NegativeFilter.fs" />
     <Compile Include="Filters\ContrastFilter.fs" />
     <Compile Include="Filters\SepiaFilter.fs" />
+    <Compile Include="Filters\SaturationFilter.fs" />
+    <Compile Include="Filters\HueFilter.fs" />
     <Compile Include="ImageForm.fs" />
     <Compile Include="VM\ViewModelBase.fs" />
     <Compile Include="VM\ViewModel.fs" />
