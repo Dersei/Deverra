@@ -6,11 +6,6 @@ module SobelFilter =
     let sobelCommand stride = <@ fun (range:_2D) (buf:array<uint32>) (dst:array<uint32>) ->
         let i = range.GlobalID0
         let j = range.GlobalID1
-        let truncate (color : float) = 
-            let mutable result = 0.0
-            if color > 0.0 then result <- color else result <- 0.0;
-            if result < 255.0 then result <- result else result <- 255.0;
-            result
         let mutable h = 0.
         if (i > 0 && i < stride) then
             let left = float(buf.[i - 1 + stride * j] &&& 255u)

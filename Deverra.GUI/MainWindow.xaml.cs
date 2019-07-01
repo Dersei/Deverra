@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using VM;
@@ -36,12 +36,35 @@ namespace Deverra.GUI
             filtersContainerStyle.Setters.Add(new EventSetter(PreviewMouseMoveEvent, new MouseEventHandler(ListBoxItem_PreviewMouseMoveEvent)));
             FilterList.ItemContainerStyle = filtersContainerStyle;
             ToApplyList.ItemContainerStyle = toApplyContainerStyle;
+            _filteredGeometry = new RectangleGeometry(new Rect(new Size(FilteredImage.ActualWidth, FilteredImage.ActualHeight)));
+            FilteredImage.Clip = _filteredGeometry;
+
+            RightWindowCommandsOverlayBehavior = WindowCommandsOverlayBehavior.Flyouts;
+            WindowButtonCommandsOverlayBehavior = WindowCommandsOverlayBehavior.Flyouts;
         }
 
+        private readonly RectangleGeometry _filteredGeometry;
         private void FilteredImage_OnMouseMove(object sender, MouseEventArgs e)
         {
-            var position = e.GetPosition(this);
-            FilteredImage.Width = position.X;
+            if (_isFrozen) return;
+            var position = e.GetPosition(FilteredImage);
+
+            if (!_isReversed && !_isVertical)
+            {
+                _filteredGeometry.Rect = new Rect(0, 0, position.X, FilteredImage.ActualHeight);
+            }
+            else if (!_isVertical && FilteredImage.ActualWidth - position.X > 0)
+            {
+                _filteredGeometry.Rect = new Rect(position.X, 0, FilteredImage.ActualWidth - position.X, FilteredImage.ActualHeight);
+            }
+            else if (!_isReversed && _isVertical && FilteredImage.ActualHeight - position.Y > 0)
+            {
+                _filteredGeometry.Rect = new Rect(0, position.Y, FilteredImage.ActualWidth, FilteredImage.ActualHeight - position.Y);
+            }
+            else if (_isVertical && FilteredImage.ActualHeight - position.Y > 0)
+            {
+                _filteredGeometry.Rect = new Rect(0, 0, FilteredImage.ActualWidth, position.Y);
+            }
         }
 
         private void OpenButton_OnClick(object sender, RoutedEventArgs e)
@@ -49,9 +72,8 @@ namespace Deverra.GUI
             var openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                var bitmap = ((ViewModel)DataContext).OriginalImage = new Bitmap(openFileDialog.FileName);
-                ((ViewModel)DataContext).FilteredImage = null;
-                Width = bitmap.Width / (double)bitmap.Height * (Height - OpenButton.ActualHeight - 50);
+                var bitmap = ((ViewModel)DataContext).OriginalImage = new WriteableBitmap(new BitmapImage(new Uri(openFileDialog.FileName)));
+                Width = bitmap.PixelWidth / (double)bitmap.PixelHeight * (Height - OpenButton.ActualHeight - 50);
             }
         }
 
@@ -80,7 +102,8 @@ namespace Deverra.GUI
         private void ToApplyListItem_Drop(object sender, DragEventArgs e)
         {
             var data = e.Data.GetData(typeof(IdFilter));
-            var droppedData = data is null ? new IdFilter((VM.Filters)e.Data.GetData(typeof(VM.Filters))) : (IdFilter)e.Data.GetData(typeof(IdFilter));
+            var droppedData = data is null ? new IdFilter((VM.Filters)(e.Data.GetData(typeof(VM.Filters))?? VM.Filters.Sepia)) : (IdFilter)e.Data.GetData(typeof(IdFilter));
+            if (droppedData is null) return;
             var target = (IdFilter)((ListViewItem)sender).DataContext;
             e.Handled = true;
             if (data is null)
@@ -120,7 +143,8 @@ namespace Deverra.GUI
                 _toApply.Add(droppedDataInside);
                 return;
             }
-            var droppedData = (VM.Filters)e.Data.GetData(typeof(VM.Filters));
+
+            var droppedData = (VM.Filters) (e.Data.GetData(typeof(VM.Filters)) ?? VM.Filters.Sepia);
             _toApply.Add(new IdFilter(droppedData));
             ToApplyList.UpdateLayout();
             ((ListViewItem)ToApplyList.ItemContainerGenerator.ContainerFromIndex(_toApply.Count - 1)).IsSelected = true;
@@ -130,7 +154,7 @@ namespace Deverra.GUI
         private void SaveButton_OnClick(object sender, RoutedEventArgs e)
         {
             var vm = ((ViewModel)DataContext);
-            if (vm.FilteredImage is null) return;
+            if (vm.ResultImage is null) return;
             var saveFileDialog = new SaveFileDialog()
             {
                 AddExtension = true,
@@ -141,9 +165,21 @@ namespace Deverra.GUI
             };
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                vm.FilteredImage.Save(saveFileDialog.FileName);
+                if (_isFrozen)
+                {
+                    var writeable = vm.OriginalImage.Clone();
+                    writeable.Blit(new Rect(0, 0, GetFilteredWidth(writeable), writeable.PixelHeight), vm.ResultImage, new Rect(new Size(GetFilteredWidth(writeable), vm.ResultImage.PixelHeight)), WriteableBitmapExtensions.BlendMode.None);
+                    writeable.Save(saveFileDialog.FileName);
+                    return;
+                }
+                vm.ResultImage.Save(saveFileDialog.FileName);
             }
 
+        }
+
+        private double GetFilteredWidth(WriteableBitmap bitmap)
+        {
+            return FilteredImage.Width * bitmap.PixelHeight / FilteredImage.ActualHeight;
         }
 
         private void ToApplyListItem_OnMouseRightButtonUpPreview(object sender, MouseButtonEventArgs e)
@@ -163,8 +199,7 @@ namespace Deverra.GUI
             timer.Start();
             ((ViewModel)DataContext).Filters = ToApplyList.Items.Cast<IdFilter>().Select(filter => ((VM.Filters)filter, filter.Ratio)).ToArray();
             var controller = await this.ShowProgressAsync("Processing...", "Processing...");
-            //((ViewModel)DataContext).Run();
-            await Task.Run(((ViewModel)DataContext).Run);
+            ((ViewModel)DataContext).Run();
             await controller.CloseAsync();
             timer.Stop();
             Console.WriteLine(timer.Elapsed);
@@ -172,14 +207,14 @@ namespace Deverra.GUI
 
         private class IdFilter : IEquatable<IdFilter>
         {
-            private readonly Guid Id;
+            private readonly Guid _id;
             public VM.Filters Filter { get; }
             public Visibility Visibility { get; }
             public int Ratio { get; set; }
 
             public IdFilter(VM.Filters filter)
             {
-                Id = Guid.NewGuid();
+                _id = Guid.NewGuid();
                 Filter = filter;
                 Visibility = filter == VM.Filters.Contrast ? Visibility.Visible : Visibility.Collapsed;
                 Ratio = 0;
@@ -197,7 +232,7 @@ namespace Deverra.GUI
 
             public bool Equals(IdFilter other)
             {
-                return Id.Equals(other.Id);
+                return _id.Equals(other?._id);
             }
 
             public override bool Equals(object obj)
@@ -207,8 +242,35 @@ namespace Deverra.GUI
 
             public override int GetHashCode()
             {
-                return Id.GetHashCode();
+                return _id.GetHashCode();
             }
+        }
+
+
+        private bool _isFrozen;
+        private bool _isReversed;
+        private bool _isVertical;
+        private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F)
+            {
+                _isFrozen = !_isFrozen;
+            }
+            if (e.Key == Key.R)
+            {
+                _isReversed = !_isReversed;
+                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+            }
+            if (e.Key == Key.T)
+            {
+                _isVertical = !_isVertical;
+                FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
+            }
+        }
+
+        private void HelpButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            HelpFlyout.IsOpen = true;
         }
     }
 }

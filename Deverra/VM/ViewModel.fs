@@ -9,17 +9,19 @@ open FSharp.Core
 open System.Windows.Input
 open System.Diagnostics
 open Filters
+open System.Windows.Media.Imaging
 
 type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 
+type WBeX = WriteableBitmapExtensions
 
 
 type public ViewModel() =
     inherit ViewModelBase()
 
-    let mutable originalImage : Bitmap = null
-    let mutable filteredImage : Bitmap = null
+    let mutable originalImage : WriteableBitmap = null
     let mutable runCommand : ICommand = null
     let mutable filters : struct (Filters * int)[] = Array.empty
+    let mutable resultImage : WriteableBitmap = null
 
     let rec gcd x y =
         if y = 0 then x
@@ -34,28 +36,27 @@ type public ViewModel() =
         and set(value) = 
             originalImage <- value 
             this.OnPropertyChanged(<@ this.OriginalImage @>)
-    member this.FilteredImage 
-        with get() = filteredImage
+    member this.ResultImage 
+        with get() = resultImage
         and set(value) = 
-            filteredImage <- value
-            this.OnPropertyChanged(<@ this.FilteredImage @>)
+            resultImage <- value
+            this.OnPropertyChanged(<@ this.ResultImage @>)
     member __.Filters
         with get() = filters
         and set(value) = filters <- value
 
     member this.RunCommand
         with get() = if runCommand  = null then 
-                        runCommand <- this.createCommand (fun _ -> this.Run()) (fun _ -> true)
+                        runCommand <- this.createCommand (fun _ -> this.RunSafe()) (fun _ -> true)
                         runCommand
                         else runCommand
         and set(value) =
             runCommand <- value
 
-    member this.Run() = 
-        let resultImg = new Bitmap(originalImage.Width, originalImage.Height)
+    member private this.RunSafe() = 
         let provider = ComputeProvider.Create("*", DeviceType.Gpu)
         let mutable commandQueue = new Brahma.OpenCL.CommandQueue(provider, provider.Devices |> Seq.head)
-        let stride = originalImage.Height;
+        let stride = originalImage.PixelHeight;
         let maxSamplers = (OpenCL.Net.Cl.GetDeviceInfo(provider.Devices |> Seq.head, DeviceInfo.MaxSamplers) |> fst).CastTo<int>()
         let mutable kernels : Kernel<_2D> list = List.empty
         let mutable kernelprepares : (_2D -> uint32 array -> uint32 array -> unit) list = List.empty
@@ -75,10 +76,14 @@ type public ViewModel() =
             kernelruns <- kernelruns @ [kernelrun]
         
 
-        let gcdSize = safeGcd originalImage.Height originalImage.Width maxSamplers
-        let d = _2D(originalImage.Height, originalImage.Width, gcdSize, gcdSize)
-        let src = Array.init (originalImage.Width * originalImage.Height) (function i -> ColorExt.packColor(originalImage.GetPixel(i / stride, i % stride)))
-        let dst = Array.zeroCreate (originalImage.Width * originalImage.Height)
+        let gcdSize = safeGcd originalImage.PixelHeight originalImage.PixelWidth maxSamplers
+        let d = _2D(originalImage.PixelHeight, originalImage.PixelWidth, gcdSize, gcdSize)
+        let timerSrc = new Stopwatch()
+        timerSrc.Start()
+        let src = (originalImage.Rotate(90).ToByteArray() |> ColorExt.packBytes)
+        timerSrc.Stop()
+        printfn "Finished reading %A" timerSrc.Elapsed
+        let dst = Array.zeroCreate (originalImage.PixelWidth * originalImage.PixelHeight)
         kernelprepares.Head d src dst
         kernelprepares |> List.skip 1 |> List.iter (fun item -> item d dst dst)
 
@@ -88,9 +93,12 @@ type public ViewModel() =
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
         timer.Stop()
         printfn "Finished processsing %A" timer.Elapsed
-        dst |> Array.iteri (fun i (v:uint32) -> resultImg.SetPixel(i / stride, i % stride, ColorExt.unpackColor(v)))
         commandQueue.Dispose()
         provider.CloseAllBuffers()
         provider.Dispose()
         printfn "Finished writing image"
-        this.FilteredImage <- resultImg
+        let wbm = WriteableBitmap(originalImage.PixelHeight, originalImage.PixelWidth, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
+        this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray).Rotate(270)
+
+    member this.Run() = 
+        if originalImage = null then false else this.RunSafe(); true
