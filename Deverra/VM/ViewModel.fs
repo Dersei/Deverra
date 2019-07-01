@@ -18,8 +18,7 @@ type WBeX = WriteableBitmapExtensions
 type public ViewModel() =
     inherit ViewModelBase()
 
-    let mutable originalImage : Bitmap = null
-    let mutable filteredImage : Bitmap = null
+    let mutable originalImage : WriteableBitmap = null
     let mutable runCommand : ICommand = null
     let mutable filters : struct (Filters * int)[] = Array.empty
     let mutable resultImage : WriteableBitmap = null
@@ -37,11 +36,6 @@ type public ViewModel() =
         and set(value) = 
             originalImage <- value 
             this.OnPropertyChanged(<@ this.OriginalImage @>)
-    member this.FilteredImage 
-        with get() = filteredImage
-        and set(value) = 
-            filteredImage <- value
-            this.OnPropertyChanged(<@ this.FilteredImage @>)
     member this.ResultImage 
         with get() = resultImage
         and set(value) = 
@@ -60,10 +54,9 @@ type public ViewModel() =
             runCommand <- value
 
     member this.Run() = 
-        let resultImg = new Bitmap(originalImage.Width, originalImage.Height)
         let provider = ComputeProvider.Create("*", DeviceType.Gpu)
         let mutable commandQueue = new Brahma.OpenCL.CommandQueue(provider, provider.Devices |> Seq.head)
-        let stride = originalImage.Height;
+        let stride = originalImage.PixelHeight;
         let maxSamplers = (OpenCL.Net.Cl.GetDeviceInfo(provider.Devices |> Seq.head, DeviceInfo.MaxSamplers) |> fst).CastTo<int>()
         let mutable kernels : Kernel<_2D> list = List.empty
         let mutable kernelprepares : (_2D -> uint32 array -> uint32 array -> unit) list = List.empty
@@ -72,21 +65,21 @@ type public ViewModel() =
         for filter in this.Filters do
             let kernel, kernelprepare, kernelrun = match filter with 
                                                     | (Filters.Sepia, _) -> provider.Compile(SepiaFilter.sepiaCommand stride)
-                                                    | (Filters.Negative, _) -> provider.Compile(NegativeFilter.negativeCommand stride)
-                                                    | (Filters.Sobel, _) -> provider.Compile(SobelFilter.sobelCommand stride)
-                                                    | (Filters.UltraSobel, _) -> provider.Compile(UltraSobelFilter.ultraSobelCommand stride)
-                                                    | (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
-                                                    | (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
+                                                    //| (Filters.Negative, _) -> provider.Compile(NegativeFilter.negativeCommand stride)
+                                                    //| (Filters.Sobel, _) -> provider.Compile(SobelFilter.sobelCommand stride)
+                                                    //| (Filters.UltraSobel, _) -> provider.Compile(UltraSobelFilter.ultraSobelCommand stride)
+                                                    //| (Filters.Mean, _) -> provider.Compile(MeanFilter.meanCommand stride)
+                                                    //| (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
                                                     | _ -> failwith "Wrong filter" 
             kernels <- kernels @ [kernel]
             kernelprepares <- kernelprepares @ [kernelprepare]
             kernelruns <- kernelruns @ [kernelrun]
         
 
-        let gcdSize = safeGcd originalImage.Height originalImage.Width maxSamplers
-        let d = _2D(originalImage.Height, originalImage.Width, gcdSize, gcdSize)
-        let src = Array.init (originalImage.Width * originalImage.Height) (function i -> ColorExt.packColor(originalImage.GetPixel(i / stride, i % stride)))
-        let dst = Array.zeroCreate (originalImage.Width * originalImage.Height)
+        let gcdSize = safeGcd originalImage.PixelHeight originalImage.PixelWidth maxSamplers
+        let d = _2D(originalImage.PixelHeight, originalImage.PixelWidth, gcdSize, gcdSize)
+        let src = Array.init (originalImage.PixelWidth * originalImage.PixelHeight) (function i -> ColorExt.packColor(originalImage.GetPixel(i / stride, i % stride)))
+        let dst = Array.zeroCreate (originalImage.PixelWidth * originalImage.PixelHeight)
         kernelprepares.Head d src dst
         kernelprepares |> List.skip 1 |> List.iter (fun item -> item d dst dst)
 
@@ -96,11 +89,9 @@ type public ViewModel() =
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
         timer.Stop()
         printfn "Finished processsing %A" timer.Elapsed
-        dst |> Array.iteri (fun i (v:uint32) -> resultImg.SetPixel(i / stride, i % stride, ColorExt.unpackColor(v)))
         commandQueue.Dispose()
         provider.CloseAllBuffers()
         provider.Dispose()
         printfn "Finished writing image"
-        this.FilteredImage <- resultImg
-        let wbm = WriteableBitmap(originalImage.Height, originalImage.Width, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
+        let wbm = WriteableBitmap(originalImage.PixelHeight, originalImage.PixelWidth, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
         this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray).Rotate(90).Flip(WBeX.FlipMode.Vertical)

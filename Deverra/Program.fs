@@ -7,6 +7,7 @@ open ImageForm
 open VM
 open System
 open System.IO
+open System.Windows.Media.Imaging
 
 let filterValues = Filters.GetNames(typeof<Filters>) |> Array.map (fun item -> item.ToLowerInvariant());
 
@@ -35,13 +36,13 @@ let main args =
     let filters = args |> Array.skip 1 |> Array.map (fun item -> if item.Contains "=" then parseValueWithRatio(item) else struct ((Enum.TryParse(checkIfEnumCorrect item, true) |> snd), 0))
     
     let img = try 
-                new Bitmap(path) 
+                new WriteableBitmap(new BitmapImage(new Uri(path)))
               with 
                 | :? FileNotFoundException -> failwith "File is not a image";
     let vm = ViewModel(OriginalImage = img, Filters = filters)
-    let form = new ImageForm(Visible=true, Height = img.Height, Width = img.Width, StartPosition = FormStartPosition.CenterScreen)
+    //let form = new ImageForm(Visible=true, Height = img.Height, Width = img.Width, StartPosition = FormStartPosition.CenterScreen)
     vm.Run()
-    form.Start img vm.FilteredImage
-    System.Windows.Forms.Application.Run(form)
-    img.Dispose()
+    //form.Start img vm.FilteredImage
+    //System.Windows.Forms.Application.Run(form)
+    //img.Dispose()
     0

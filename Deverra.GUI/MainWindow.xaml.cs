@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using VM;
@@ -49,9 +50,8 @@ namespace Deverra.GUI
             var openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                var bitmap = ((ViewModel)DataContext).OriginalImage = new Bitmap(openFileDialog.FileName);
-                ((ViewModel)DataContext).FilteredImage = null;
-                Width = bitmap.Width / (double)bitmap.Height * (Height - OpenButton.ActualHeight - 50);
+                var bitmap = ((ViewModel)DataContext).OriginalImage = new WriteableBitmap(new BitmapImage(new Uri(openFileDialog.FileName)));
+                Width = bitmap.PixelWidth / (double)bitmap.PixelHeight * (Height - OpenButton.ActualHeight - 50);
             }
         }
 
@@ -130,7 +130,7 @@ namespace Deverra.GUI
         private void SaveButton_OnClick(object sender, RoutedEventArgs e)
         {
             var vm = ((ViewModel)DataContext);
-            if (vm.FilteredImage is null) return;
+            if (vm.ResultImage is null) return;
             var saveFileDialog = new SaveFileDialog()
             {
                 AddExtension = true,
@@ -141,7 +141,7 @@ namespace Deverra.GUI
             };
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                vm.FilteredImage.Save(saveFileDialog.FileName);
+                vm.ResultImage.Save(saveFileDialog.FileName);
             }
 
         }

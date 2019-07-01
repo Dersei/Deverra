@@ -14,7 +14,6 @@
         <vm:ViewModel></vm:ViewModel>
     </Window.DataContext>
     <Window.Resources>
-        <local:BitmapConverter x:Key="BitmapConverter"></local:BitmapConverter>
         <ObjectDataProvider x:Key="FilterFromEnum" MethodName="GetValues"
                             ObjectType="{x:Type system:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -27,7 +26,7 @@
             <RowDefinition Height="15*"></RowDefinition>
             <RowDefinition Height="3.5*"></RowDefinition>
         </Grid.RowDefinitions>
-        <Image HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding OriginalImage, Mode=OneWay, Converter={StaticResource BitmapConverter}}"></Image>
+        <Image HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding OriginalImage, Mode=OneWay}"></Image>
         <Image Grid.Row="0" x:Name="FilteredImage" HorizontalAlignment="Left" VerticalAlignment="Stretch" Stretch="UniformToFill" MouseMove="FilteredImage_OnMouseMove" Source="{Binding ResultImage, Mode=OneWay}"></Image>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
