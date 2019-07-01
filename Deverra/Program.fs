@@ -39,7 +39,7 @@ let main args =
                 | :? FileNotFoundException -> failwith "File is not an image";
     let vm = ViewModel(OriginalImage = img, Filters = filters)
     let window = new ImageForm(SizeToContent = SizeToContent.WidthAndHeight, WindowStartupLocation = WindowStartupLocation.CenterScreen)
-    vm.Run()
+    vm.Run() |> ignore
     window.Start(img, vm.ResultImage)
     window.ShowDialog() |> ignore
     0

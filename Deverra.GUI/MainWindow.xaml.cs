@@ -38,6 +38,9 @@ namespace Deverra.GUI
             ToApplyList.ItemContainerStyle = toApplyContainerStyle;
             _filteredGeometry = new RectangleGeometry(new Rect(new Size(FilteredImage.ActualWidth, FilteredImage.ActualHeight)));
             FilteredImage.Clip = _filteredGeometry;
+
+            RightWindowCommandsOverlayBehavior = WindowCommandsOverlayBehavior.Flyouts;
+            WindowButtonCommandsOverlayBehavior = WindowCommandsOverlayBehavior.Flyouts;
         }
 
         private readonly RectangleGeometry _filteredGeometry;
@@ -99,7 +102,8 @@ namespace Deverra.GUI
         private void ToApplyListItem_Drop(object sender, DragEventArgs e)
         {
             var data = e.Data.GetData(typeof(IdFilter));
-            var droppedData = data is null ? new IdFilter((VM.Filters)e.Data.GetData(typeof(VM.Filters))) : (IdFilter)e.Data.GetData(typeof(IdFilter));
+            var droppedData = data is null ? new IdFilter((VM.Filters)(e.Data.GetData(typeof(VM.Filters))?? VM.Filters.Sepia)) : (IdFilter)e.Data.GetData(typeof(IdFilter));
+            if (droppedData is null) return;
             var target = (IdFilter)((ListViewItem)sender).DataContext;
             e.Handled = true;
             if (data is null)
@@ -139,7 +143,8 @@ namespace Deverra.GUI
                 _toApply.Add(droppedDataInside);
                 return;
             }
-            var droppedData = (VM.Filters)e.Data.GetData(typeof(VM.Filters));
+
+            var droppedData = (VM.Filters) (e.Data.GetData(typeof(VM.Filters)) ?? VM.Filters.Sepia);
             _toApply.Add(new IdFilter(droppedData));
             ToApplyList.UpdateLayout();
             ((ListViewItem)ToApplyList.ItemContainerGenerator.ContainerFromIndex(_toApply.Count - 1)).IsSelected = true;
@@ -163,7 +168,6 @@ namespace Deverra.GUI
                 if (_isFrozen)
                 {
                     var writeable = vm.OriginalImage.Clone();
-                    var width = GetFilteredWidth(writeable);
                     writeable.Blit(new Rect(0, 0, GetFilteredWidth(writeable), writeable.PixelHeight), vm.ResultImage, new Rect(new Size(GetFilteredWidth(writeable), vm.ResultImage.PixelHeight)), WriteableBitmapExtensions.BlendMode.None);
                     writeable.Save(saveFileDialog.FileName);
                     return;
@@ -203,14 +207,14 @@ namespace Deverra.GUI
 
         private class IdFilter : IEquatable<IdFilter>
         {
-            private readonly Guid Id;
+            private readonly Guid _id;
             public VM.Filters Filter { get; }
             public Visibility Visibility { get; }
             public int Ratio { get; set; }
 
             public IdFilter(VM.Filters filter)
             {
-                Id = Guid.NewGuid();
+                _id = Guid.NewGuid();
                 Filter = filter;
                 Visibility = filter == VM.Filters.Contrast ? Visibility.Visible : Visibility.Collapsed;
                 Ratio = 0;
@@ -228,7 +232,7 @@ namespace Deverra.GUI
 
             public bool Equals(IdFilter other)
             {
-                return Id.Equals(other.Id);
+                return _id.Equals(other?._id);
             }
 
             public override bool Equals(object obj)
@@ -238,7 +242,7 @@ namespace Deverra.GUI
 
             public override int GetHashCode()
             {
-                return Id.GetHashCode();
+                return _id.GetHashCode();
             }
         }
 
@@ -262,6 +266,11 @@ namespace Deverra.GUI
                 _isVertical = !_isVertical;
                 FilteredImage_OnMouseMove(FilteredImage, new MouseEventArgs(Mouse.PrimaryDevice, 0));
             }
+        }
+
+        private void HelpButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            HelpFlyout.IsOpen = true;
         }
     }
 }

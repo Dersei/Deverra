@@ -47,13 +47,13 @@ type public ViewModel() =
 
     member this.RunCommand
         with get() = if runCommand  = null then 
-                        runCommand <- this.createCommand (fun _ -> this.Run()) (fun _ -> true)
+                        runCommand <- this.createCommand (fun _ -> this.RunSafe()) (fun _ -> true)
                         runCommand
                         else runCommand
         and set(value) =
             runCommand <- value
 
-    member this.Run() = 
+    member private this.RunSafe() = 
         let provider = ComputeProvider.Create("*", DeviceType.Gpu)
         let mutable commandQueue = new Brahma.OpenCL.CommandQueue(provider, provider.Devices |> Seq.head)
         let stride = originalImage.PixelHeight;
@@ -99,3 +99,6 @@ type public ViewModel() =
         printfn "Finished writing image"
         let wbm = WriteableBitmap(originalImage.PixelHeight, originalImage.PixelWidth, 32.0, 32.0, System.Windows.Media.PixelFormats.Bgra32, null)
         this.ResultImage <- wbm.FromByteArray(dst |> ColorExt.createByteArray).Rotate(270)
+
+    member this.Run() = 
+        if originalImage = null then false else this.RunSafe(); true

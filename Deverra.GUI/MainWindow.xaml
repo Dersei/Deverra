@@ -22,6 +22,51 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </Window.Resources>
+    <controls:MetroWindow.RightWindowCommands>
+        <controls:WindowCommands>
+            <Button x:Name="HelpButton" Click="HelpButton_OnClick">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconFontAwesome Width="16" Height="16" Kind="QuestionSolid" Foreground="White">
+                        <iconPacks:PackIconFontAwesome.Style>
+                            <Style TargetType="iconPacks:PackIconFontAwesome">
+                                <Style.Triggers>
+                                    <EventTrigger RoutedEvent="iconPacks:PackIconFontAwesome.Loaded">
+                                        <EventTrigger.Actions>
+                                            <BeginStoryboard  >
+                                                <Storyboard TargetProperty="Foreground">
+                                                    <ColorAnimation Storyboard.TargetProperty="(Foreground).(SolidColorBrush.Color)" From="White" To="Black" AutoReverse="True" Duration="0:0:2" RepeatBehavior="10"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger.Actions>
+                                    </EventTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </iconPacks:PackIconFontAwesome.Style>
+                    </iconPacks:PackIconFontAwesome>
+                </StackPanel>
+            </Button>
+        </controls:WindowCommands>
+    </controls:MetroWindow.RightWindowCommands>
+    <controls:MetroWindow.Flyouts>
+        <controls:FlyoutsControl>
+            <controls:Flyout x:Name="HelpFlyout" Header="Help" Position="Right" Width="200">
+                <StackPanel Orientation="Vertical" Margin="0 20 0 0">
+                    <Label HorizontalContentAlignment="Center">
+                        <iconPacks:PackIconFontAwesome Width="28" Height="28" Kind="KeyboardSolid" />
+                    </Label>
+                    <Label Content="֍ F to freeze rolling"></Label>
+                    <Label Content="֍ R or T to change direction"></Label>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                    <Label HorizontalContentAlignment="Center">
+                        <iconPacks:PackIconFontAwesome Width="24" Height="24" Kind="MousePointerSolid" />
+                    </Label>
+                    <Label Content="֍ Drag'n'drop filters to use"></Label>
+                    <Label Content="֍ Reorder by drag'n'drop"></Label>
+                    <Label Content="֍ Remove with right click"></Label>
+                </StackPanel>
+            </controls:Flyout>
+        </controls:FlyoutsControl>
+    </controls:MetroWindow.Flyouts>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="15*"></RowDefinition>
