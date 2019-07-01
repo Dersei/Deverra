@@ -1,13 +1,12 @@
 ﻿module Deverra.Main
 
-open System.Drawing
-open System.Windows.Forms
 open FSharp.Core
 open ImageForm
 open VM
 open System
 open System.IO
 open System.Windows.Media.Imaging
+open System.Windows
 
 let filterValues = Filters.GetNames(typeof<Filters>) |> Array.map (fun item -> item.ToLowerInvariant());
 
@@ -32,17 +31,15 @@ let main args =
                     | true -> args.[0]
                     | _ -> failwith "Wrong path"  
 
-    let filterValues = Filters.GetNames(typeof<Filters>) |> Array.map (fun item -> item.ToLowerInvariant());
     let filters = args |> Array.skip 1 |> Array.map (fun item -> if item.Contains "=" then parseValueWithRatio(item) else struct ((Enum.TryParse(checkIfEnumCorrect item, true) |> snd), 0))
     
     let img = try 
-                new WriteableBitmap(new BitmapImage(new Uri(path)))
+                new WriteableBitmap(new BitmapImage(new Uri(path, UriKind.RelativeOrAbsolute)))
               with 
-                | :? FileNotFoundException -> failwith "File is not a image";
+                | :? FileNotFoundException -> failwith "File is not an image";
     let vm = ViewModel(OriginalImage = img, Filters = filters)
-    //let form = new ImageForm(Visible=true, Height = img.Height, Width = img.Width, StartPosition = FormStartPosition.CenterScreen)
+    let window = new ImageForm(SizeToContent = SizeToContent.WidthAndHeight, WindowStartupLocation = WindowStartupLocation.CenterScreen)
     vm.Run()
-    //form.Start img vm.FilteredImage
-    //System.Windows.Forms.Application.Run(form)
-    //img.Dispose()
+    window.Start(img, vm.ResultImage)
+    window.ShowDialog() |> ignore
     0
