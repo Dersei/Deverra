@@ -75,7 +75,7 @@ namespace Deverra.GUI
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new WriteableBitmap(new BitmapImage(new Uri(openFileDialog.FileName)));
                 Width = bitmap.PixelWidth / (double)bitmap.PixelHeight * (Height - OpenButton.ActualHeight - 50);
-                ((ViewModel) DataContext).ResultImage = null;
+                ((ViewModel)DataContext).ResultImage = null;
             }
         }
 
@@ -264,6 +264,14 @@ namespace Deverra.GUI
         private void HelpButton_OnClick(object sender, RoutedEventArgs e)
         {
             HelpFlyout.IsOpen = true;
+        }
+
+        private void ReplaceButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            var vm = (ViewModel)DataContext;
+            if (vm.ResultImage is null) return;
+            vm.OriginalImage = vm.ResultImage;
+            vm.ResultImage = null;
         }
     }
 }
