@@ -136,6 +136,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BitmapHelper.cs" />
+    <Compile Include="DragDropExtension.cs" />
     <Compile Include="IdFilter.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
