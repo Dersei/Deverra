@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -70,7 +69,7 @@ namespace Deverra.GUI
 
         private void OpenButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new OpenFileDialog();
+            using var openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 var bitmap = ((ViewModel)DataContext).OriginalImage = new WriteableBitmap(new BitmapImage(new Uri(openFileDialog.FileName)));
@@ -157,7 +156,7 @@ namespace Deverra.GUI
         {
             var vm = ((ViewModel)DataContext);
             if (vm.ResultImage is null) return;
-            var saveFileDialog = new SaveFileDialog()
+            using var saveFileDialog = new SaveFileDialog()
             {
                 AddExtension = true,
                 Filter = "Image files | *.bmp;*.gif;*.exif;*.jpg;*.png;*.tiff",

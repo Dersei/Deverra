@@ -88,8 +88,7 @@ public static class DragDropExtension
 
     private static void OnContainerPreviewDragOver(object sender, DragEventArgs e)
     {
-        var container = sender as FrameworkElement;
-        if (container == null)
+        if (!(sender is FrameworkElement container))
             return;
 
 		// determine Item-wise or content scrolling (by pixel)

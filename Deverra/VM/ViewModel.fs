@@ -40,7 +40,7 @@ type public ViewModel() =
         and set(value) = 
             resultImage <- value
             this.OnPropertyChanged(<@ this.ResultImage @>)
-    member __.Filters
+    member _.Filters
         with get() = filters
         and set(value) = filters <- value
 

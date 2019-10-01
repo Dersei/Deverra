@@ -18,15 +18,15 @@ type ViewModelBase() =
         let event1 = Event<_, _>()
         {
             new ICommand with
-                member __.CanExecute(obj) = canExecute(obj)
-                member __.Execute(obj) = action(obj)
-                member __.add_CanExecuteChanged(handler) = event1.Publish.AddHandler(handler)
-                member __.remove_CanExecuteChanged(handler) = event1.Publish.AddHandler(handler)
+                member _.CanExecute(obj) = canExecute(obj)
+                member _.Execute(obj) = action(obj)
+                member _.add_CanExecuteChanged(handler) = event1.Publish.AddHandler(handler)
+                member _.remove_CanExecuteChanged(handler) = event1.Publish.AddHandler(handler)
         }
 
     interface INotifyPropertyChanged with
         [<CLIEvent>]
-        member __.PropertyChanged = propertyChanged.Publish
+        member _.PropertyChanged = propertyChanged.Publish
 
     abstract member OnPropertyChanged: string -> unit
     default x.OnPropertyChanged(propertyName : string) =

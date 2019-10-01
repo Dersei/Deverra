@@ -24,7 +24,7 @@ type ImageForm() =
         if visibility then Visibility.Visible else Visibility.Hidden
     
 
-    member __.SaveImage = 
+    member _.SaveImage = 
         let sfd = new SaveFileDialog(AddExtension = true,Filter = "Image files | *.bmp;*.gif;*.exif;*.jpg;*.png;*.tiff", DefaultExt = ".png", RestoreDirectory = true,
                     InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures))
         if sfd.ShowDialog() = DialogResult.OK then saveImage(filteredResult, sfd.FileName)
