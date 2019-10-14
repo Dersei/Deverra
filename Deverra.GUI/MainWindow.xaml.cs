@@ -96,7 +96,7 @@ namespace Deverra.GUI
         }
 
         private readonly ObservableCollection<VM.Filters> _filters = new ObservableCollection<VM.Filters>
-        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast, VM.Filters.Saturation, VM.Filters.Hue};
+        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast, VM.Filters.Saturation, VM.Filters.Hue, VM.Filters.Log2, VM.Filters.Wave, VM.Filters.Shine};
 
         private readonly ObservableCollection<IdFilter> _toApply = new ObservableCollection<IdFilter>();
 
@@ -219,8 +219,16 @@ namespace Deverra.GUI
             timer.Start();
             ((ViewModel)DataContext).Filters = ToApplyList.Items.Cast<IdFilter>().Select(filter => ((VM.Filters)filter, filter.Ratio)).ToArray();
             var controller = await this.ShowProgressAsync("Processing...", "Processing...");
-            ((ViewModel)DataContext).Run();
-            await controller.CloseAsync();
+            var (result, exception) = ((ViewModel)DataContext).Run();
+            if (!result)
+            {
+                await this.ShowMessageAsync("Error", exception.Message);
+                await controller.CloseAsync();
+            }
+            else
+            {
+                await controller.CloseAsync();
+            }
             timer.Stop();
             Console.WriteLine(timer.Elapsed);
         }

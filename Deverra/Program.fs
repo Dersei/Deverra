@@ -39,7 +39,9 @@ let main args =
                 | :? FileNotFoundException -> failwith "File is not an image";
     let vm = ViewModel(OriginalImage = img, Filters = filters)
     let window = new ImageForm(SizeToContent = SizeToContent.WidthAndHeight, WindowStartupLocation = WindowStartupLocation.CenterScreen)
-    vm.Run() |> ignore
-    window.Start(img, vm.ResultImage)
-    window.ShowDialog() |> ignore
+    match vm.Run() with
+        | (false, null) -> MessageBox.Show("There is no original image", "Error", MessageBoxButton.OK, MessageBoxImage.Error) |> ignore
+        | (false, ex) -> MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error) |> ignore
+        | (true, _) -> window.Start(img, vm.ResultImage)
+                       window.ShowDialog() |> ignore
     0

@@ -67,6 +67,9 @@
     <Compile Include="Filters\SepiaFilter.fs" />
     <Compile Include="Filters\SaturationFilter.fs" />
     <Compile Include="Filters\HueFilter.fs" />
+    <Compile Include="Filters\Log2Filter.fs" />
+    <Compile Include="Filters\WaveFilter.fs" />
+    <Compile Include="Filters\ShineFilter.fs" />
     <Compile Include="ImageForm.fs" />
     <Compile Include="VM\ViewModelBase.fs" />
     <Compile Include="VM\ViewModel.fs" />
