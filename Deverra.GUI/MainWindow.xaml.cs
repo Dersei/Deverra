@@ -219,8 +219,16 @@ namespace Deverra.GUI
             timer.Start();
             ((ViewModel)DataContext).Filters = ToApplyList.Items.Cast<IdFilter>().Select(filter => ((VM.Filters)filter, filter.Ratio)).ToArray();
             var controller = await this.ShowProgressAsync("Processing...", "Processing...");
-            ((ViewModel)DataContext).Run();
-            await controller.CloseAsync();
+            var (result, exception) = ((ViewModel)DataContext).Run();
+            if (!result)
+            {
+                await this.ShowMessageAsync("Error", exception.Message);
+                await controller.CloseAsync();
+            }
+            else
+            {
+                await controller.CloseAsync();
+            }
             timer.Stop();
             Console.WriteLine(timer.Elapsed);
         }
