@@ -10,7 +10,7 @@ open System.Diagnostics
 open Filters
 open System.Windows.Media.Imaging
 
-type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 | Saturation = 6 | Hue = 7
+type Filters = Sepia = 0 | Negative  = 1 | Sobel = 2 | UltraSobel = 3 | Mean = 4 | Contrast = 5 | Saturation = 6 | Hue = 7 | Log2 = 8 | Wave = 9 | Shine = 10
 type WBeX = WriteableBitmapExtensions
 
 
@@ -52,7 +52,7 @@ type public ViewModel() =
         let mutable kernels : Kernel<_2D> list = List.empty
         let mutable kernelprepares : (_2D -> uint32 array -> uint32 array -> unit) list = List.empty
         let mutable kernelruns : (unit -> Commands.Run<_2D>) list = List.empty
-        this.Filters <- if this.Filters |> Array.isEmpty then [|(Filters.Sepia,0)|] else this.Filters
+        this.Filters <- if this.Filters |> Array.isEmpty then [|(Filters.Sepia, 0)|] else this.Filters
         for filter in this.Filters do
             let kernel, kernelprepare, kernelrun = match filter with 
                                                     | (Filters.Sepia, _) -> provider.Compile(SepiaFilter.sepiaCommand stride)
@@ -63,6 +63,9 @@ type public ViewModel() =
                                                     | (Filters.Contrast, ratio) -> provider.Compile(ContrastFilter.contrastCommand stride ratio)
                                                     | (Filters.Saturation, ratio) -> provider.Compile(SaturationFilter.saturationCommand stride (float(ratio)/100.0))
                                                     | (Filters.Hue, ratio) -> provider.Compile(HueFilter.hueCommand stride (float(ratio)))
+                                                    | (Filters.Log2, ratio) -> provider.Compile(Log2Filter.log2Command stride (float(ratio)/1000.0))
+                                                    | (Filters.Wave, ratio) -> provider.Compile(WaveFilter.waveCommand stride (float(ratio)))
+                                                    | (Filters.Shine, ratio) -> provider.Compile(ShineFilter.shineCommand stride (ratio * 1000))
                                                     | _ -> failwith "Wrong filter" 
             kernels <- kernels @ [kernel]
             kernelprepares <- kernelprepares @ [kernelprepare]

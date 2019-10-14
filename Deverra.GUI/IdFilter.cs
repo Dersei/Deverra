@@ -16,7 +16,10 @@ namespace Deverra.GUI
         {
             [VM.Filters.Contrast] = "From -100 to 100",
             [VM.Filters.Saturation] = "From -100 to 100",
-            [VM.Filters.Hue] = "In degrees (0-360)"
+            [VM.Filters.Hue] = "In degrees (0-360)",
+            [VM.Filters.Log2] = "From 0 to 100",
+            [VM.Filters.Wave] = "From 0 to 100",
+            [VM.Filters.Shine] = "From 0 to 100"
         };
 
 

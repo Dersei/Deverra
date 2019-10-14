@@ -96,7 +96,7 @@ namespace Deverra.GUI
         }
 
         private readonly ObservableCollection<VM.Filters> _filters = new ObservableCollection<VM.Filters>
-        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast, VM.Filters.Saturation, VM.Filters.Hue};
+        {VM.Filters.Sepia, VM.Filters.Negative, VM.Filters.Sobel,VM.Filters.UltraSobel, VM.Filters.Mean, VM.Filters.Contrast, VM.Filters.Saturation, VM.Filters.Hue, VM.Filters.Log2, VM.Filters.Wave, VM.Filters.Shine};
 
         private readonly ObservableCollection<IdFilter> _toApply = new ObservableCollection<IdFilter>();
 
