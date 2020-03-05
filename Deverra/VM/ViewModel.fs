@@ -88,7 +88,7 @@ type public ViewModel() =
         kernelruns |> List.iter (fun item -> commandQueue.Add(item()).Finish |> ignore) 
         commandQueue.Add(dst.ToHost provider).Finish() |> ignore
         timer.Stop()
-        printfn "Finished processsing %A" timer.Elapsed
+        printfn "Finished processing %A" timer.Elapsed
         commandQueue.Dispose()
         provider.CloseAllBuffers()
         provider.Dispose()
